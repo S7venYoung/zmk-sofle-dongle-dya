@@ -93,3 +93,5 @@ PY
           git add -A
           git commit -m "基于底座重新适配 DYA 和按键统计"
           git push
+
+# trigger: 2026-07-29T01:36:00Z
