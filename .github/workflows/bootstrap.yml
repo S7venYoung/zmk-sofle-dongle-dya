@@ -1,0 +1,95 @@
+name: One-shot bootstrap clean ZMK DYA repo
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/bootstrap.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Rebuild repository from base plus requested features
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          work="$(mktemp -d)"
+
+          curl -L "https://github.com/a741725193/zmk-sofle-dongle/archive/refs/heads/main.zip" -o "$work/base.zip"
+          unzip -q "$work/base.zip" -d "$work/base"
+          base_dir="$(find "$work/base" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+
+          curl -L "https://github.com/S7venYoung/zmk-dongle/archive/refs/heads/dya-studio.zip" -o "$work/dya.zip"
+          unzip -q "$work/dya.zip" -d "$work/dya"
+          dya_dir="$(find "$work/dya" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a "$base_dir"/. ./
+
+          # Keep base shield files. Add only requested user/DYA/display/stat features.
+          cp "$dya_dir/config/eyelash_sofle.keymap" config/eyelash_sofle.keymap
+          cp "$dya_dir/config/west.yml" config/west.yml
+          cp "$dya_dir/.github/workflows/build.yml" .github/workflows/build.yml
+          cp "$dya_dir/Kconfig" Kconfig
+          cp "$dya_dir/CMakeLists.txt" CMakeLists.txt
+          cp -a "$dya_dir/include" ./include
+          cp -a "$dya_dir/src" ./src
+          rm -rf boards/shields/dongle_display
+          cp -a "$dya_dir/boards/shields/dongle_display" boards/shields/dongle_display
+
+          python3 - <<'PY'
+from pathlib import Path
+
+central = Path('boards/shields/eyelash_sofle/eyelash_sofle_central_dongle.conf')
+text = central.read_text()
+if 'CONFIG_ZMK_DONGLE_DISPLAY_MAC_MODIFIERS=y' not in text:
+    text = text.replace(
+        'CONFIG_ZMK_POINTING=y\n',
+        'CONFIG_ZMK_POINTING=y\n\n'
+        '# Display preferences\n'
+        'CONFIG_ZMK_DONGLE_DISPLAY_MAC_MODIFIERS=y\n'
+        'CONFIG_ZMK_DONGLE_DISPLAY_LAYER_TEXT_ALIGN="center"\n'
+        'CONFIG_ZMK_DONGLE_DISPLAY_DONGLE_BATTERY=n\n'
+    )
+if 'CONFIG_ZMK_KEY_STATS=y' not in text:
+    text = text.rstrip() + '\n\n# Count physical key presses only; encoders and pointing/joystick input are ignored.\nCONFIG_ZMK_KEY_STATS=y\n'
+central.write_text(text)
+
+conf = Path('config/eyelash_sofle.conf')
+text = conf.read_text()
+text = text.replace('CONFIG_ZMK_DONGLE_DISPLAY_DONGLE_BATTERY=y', 'CONFIG_ZMK_DONGLE_DISPLAY_DONGLE_BATTERY=n')
+text = text.replace('#CONFIG_ZMK_DONGLE_DISPLAY_MAC_MODIFIERS=y', 'CONFIG_ZMK_DONGLE_DISPLAY_MAC_MODIFIERS=y')
+if 'CONFIG_ZMK_DONGLE_DISPLAY_LAYER_TEXT_ALIGN="center"' not in text:
+    text = text.replace(
+        'CONFIG_ZMK_DONGLE_DISPLAY_MAC_MODIFIERS=y\n',
+        'CONFIG_ZMK_DONGLE_DISPLAY_MAC_MODIFIERS=y\n\n'
+        '# Keep the layer label centered on the receiver display.\n'
+        'CONFIG_ZMK_DONGLE_DISPLAY_LAYER_TEXT_ALIGN="center"\n'
+    )
+conf.write_text(text)
+
+gitignore = Path('.gitignore')
+text = gitignore.read_text().replace('\nzmk/\n', '\n/zmk/\n')
+if text.startswith('zmk/\n'):
+    text = '/zmk/\n' + text[len('zmk/\n'):]
+gitignore.write_text(text)
+
+# Remove this one-shot workflow after it has generated the final source tree.
+Path('.github/workflows/bootstrap.yml').unlink(missing_ok=True)
+PY
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "基于底座重新适配 DYA 和按键统计"
+          git push
