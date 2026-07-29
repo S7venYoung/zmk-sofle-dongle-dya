@@ -43,8 +43,12 @@ static struct key_stats_status_state get_state(const zmk_event_t *_eh) {
 static void format_count(char *buf, size_t len, uint32_t value) {
     if (value < 1000U) {
         snprintf(buf, len, "%u", value);
+    } else if (value < 10000U) {
+        snprintf(buf, len, "%u.%uk", value / 1000U, (value % 1000U) / 100U);
     } else if (value < 1000000U) {
         snprintf(buf, len, "%uk", value / 1000U);
+    } else if (value < 10000000U) {
+        snprintf(buf, len, "%u.%um", value / 1000000U, (value % 1000000U) / 100000U);
     } else if (value < 1000000000U) {
         snprintf(buf, len, "%um", value / 1000000U);
     } else {
