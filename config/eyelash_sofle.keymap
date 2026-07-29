@@ -146,7 +146,7 @@
 &kp C_MUTE        &kp C_AC_NEXT_KEYBOARD_LAYOUT_SELECT  &kp LEFT_CONTROL  &kp LEFT_ALT  &lt 2 DEL   &kp SPACE    &mkp LCLK        &lt 1 ESC   &kp SPACE  &kp RET    &kp MINUS  &kp EQUAL
             >;
 
-            sensor-bindings = <&scroll_encoder>;
+            sensor-bindings = <&rsr_vol &rsr_trans>;
             display-name = "BASE";
         };
 
