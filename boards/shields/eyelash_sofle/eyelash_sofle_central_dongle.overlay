@@ -6,9 +6,6 @@
 */
 
 #include "eyelash_sofle.dtsi"
-#include <behaviors/battery_history_request.dtsi>
-#include <input/processors.dtsi>
-#include <input/processors/runtime-input-processor.dtsi>
 
 /{
     chosen {
@@ -54,8 +51,6 @@
         page-offset = <0>;
         display-offset = <0>;
         multiplex-ratio = <63>;
-        segment-remap;
-        com-invdir;
         inversion-on;
         prechargep = <0x22>;
 	};
