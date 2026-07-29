@@ -52,7 +52,7 @@ static void format_count(char *buf, size_t len, uint32_t value) {
     } else if (value < 1000000000U) {
         snprintf(buf, len, "%um", value / 1000000U);
     } else {
-        snprintf(buf, len, "%ub", value / 1000000000U);
+        snprintf(buf, len, "%u.%ub", value / 1000000000U, (value % 1000000000U) / 100000000U);
     }
 }
 
