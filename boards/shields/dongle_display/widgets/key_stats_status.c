@@ -80,14 +80,14 @@ ZMK_SUBSCRIPTION(widget_key_stats_status, zmk_key_stats_changed);
 
 int zmk_widget_key_stats_status_init(struct zmk_widget_key_stats_status *widget, lv_obj_t *parent) {
     widget->obj = lv_obj_create(parent);
-    lv_obj_set_size(widget->obj, 42, 18);
+    lv_obj_set_size(widget->obj, 50, 18);
 
     widget->total_label = lv_label_create(widget->obj);
     lv_label_set_text(widget->total_label, "T");
     lv_obj_align(widget->total_label, LV_ALIGN_TOP_LEFT, 0, 0);
 
     widget->total_value_label = lv_label_create(widget->obj);
-    lv_obj_set_width(widget->total_value_label, 30);
+    lv_obj_set_width(widget->total_value_label, 38);
     lv_obj_set_style_text_align(widget->total_value_label, LV_TEXT_ALIGN_RIGHT, 0);
     lv_obj_align(widget->total_value_label, LV_ALIGN_TOP_RIGHT, 0, 0);
 
@@ -96,7 +96,7 @@ int zmk_widget_key_stats_status_init(struct zmk_widget_key_stats_status *widget,
     lv_obj_align(widget->today_label, LV_ALIGN_TOP_LEFT, 0, 9);
 
     widget->today_value_label = lv_label_create(widget->obj);
-    lv_obj_set_width(widget->today_value_label, 30);
+    lv_obj_set_width(widget->today_value_label, 38);
     lv_obj_set_style_text_align(widget->today_value_label, LV_TEXT_ALIGN_RIGHT, 0);
     lv_obj_align(widget->today_value_label, LV_ALIGN_TOP_RIGHT, 0, 9);
 
