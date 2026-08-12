@@ -47,6 +47,7 @@ manifest:
           - openthread
           - edtt
           - trusted-firmware-m
+          - chre
     - name: zmk-feature-custom-settings
       remote: cormoran
       revision: main
@@ -68,12 +69,6 @@ manifest:
       revision: main
     - name: zmk-module-runtime-input-processor
       remote: cormoran
-      revision: main
-    - name: prospector-zmk-module
-      remote: tokyo2006
-      revision: micro_spi2
-    - name: zmk-dongle-display
-      remote: englmaxi
       revision: main
   self:
     path: config
