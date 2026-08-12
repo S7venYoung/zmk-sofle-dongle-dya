@@ -7,7 +7,10 @@ include:
     artifact-name: eyelash_sofle_central_dongle_oled
   - board: nice_nano//zmk
     shield: eyelash_sofle_peripheral_left nice_view
+    artifact-name: eyelash_sofle_peripheral_left_nice_view
   - board: nice_nano//zmk
     shield: eyelash_sofle_peripheral_right nice_view
+    artifact-name: eyelash_sofle_peripheral_right_nice_view
   - board: nice_nano//zmk
     shield: settings_reset
+    artifact-name: settings_reset
