@@ -18,6 +18,7 @@
 
 - DYA Studio 改键
 - Runtime Macro
+- Runtime Combo
 - Runtime Sensor Rotate 编码器配置
 - Runtime Input Processor
 - BLE 管理
@@ -36,6 +37,7 @@
 - DYA Studio Custom Protocol
 - `zmk-feature-custom-settings`
 - `zmk-feature-runtime-macro`
+- `zmk-feature-runtime-combo`
 
 ## 固件文件
 
@@ -72,6 +74,21 @@ GitHub Actions 构建完成后，在运行记录的 Artifacts 中下载固件压
 6. 点击保存后，Macro 会写入接收器设置。
 
 刚刷入固件、尚未创建 Slot 0 时，按下该键不会执行任何内容。
+
+## Runtime Combo
+
+`4.1` 分支已启用 Runtime Combo，可以通过 DYA Studio 在运行时创建和修改组合键。
+
+它与 Runtime Macro 可以共存：Combo 负责监听多个按键位置，Macro 负责执行一串行为。现有静态 `softoff` Combo、静态 Macro 和 Runtime Macro 均保持不变。
+
+使用方法：
+
+1. 用 USB 连接接收器并打开 DYA Studio。
+2. 进入 Runtime Combo 子系统页面。
+3. 选择空 Slot，设置名称、按键位置、输出行为、适用层和超时时间。
+4. 保存并测试；需要断电保存时启用持久化选项。
+
+固件只预留运行时 Combo 槽位，没有增加默认 Combo，因此首次刷写不会改变现有按键行为。
 
 ## 接收器屏幕编辑
 

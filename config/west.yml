@@ -55,6 +55,10 @@ manifest:
       remote: cormoran
       revision: main
       import: true
+    - name: zmk-feature-runtime-combo
+      remote: cormoran
+      revision: main
+      import: true
     - name: zmk-behavior-runtime-sensor-rotate
       remote: cormoran
       revision: main
