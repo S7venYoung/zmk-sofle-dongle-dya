@@ -1,5 +1,5 @@
 #define ZMK_POINTING_DEFAULT_MOVE_VAL 1200  // 600
-#define ZMK_POINTING_DEFAULT_SCRL_VAL 10
+#define ZMK_POINTING_DEFAULT_SCRL_VAL 60    // match working main branch
 
 #include <input/processors.dtsi>
 #include <zephyr/dt-bindings/input/input-event-codes.h>
@@ -55,10 +55,10 @@
 
     behaviors {
         scroll_encoder: scroll_encoder {
-            compatible = "zmk,behavior-sensor-rotate-var";
-            #sensor-binding-cells = <2>;
-            bindings = <&msc>, <&msc>;
-            tap-ms = <50>;
+            compatible = "zmk,behavior-sensor-rotate";
+            #sensor-binding-cells = <0>;
+            bindings = <&msc SCRL_DOWN>, <&msc SCRL_UP>;
+            tap-ms = <25>;
         };
 
         rsr_vol: rsr_vol {
@@ -174,7 +174,7 @@
             >;
 
             display-name = "SYS";
-            sensor-bindings = <&rsr_scroll &rsr_trans>;
+            sensor-bindings = <&scroll_encoder &rsr_trans>;
         };
 
         layer_3 {
@@ -187,7 +187,7 @@
             >;
 
             display-name = ">L3<";
-            sensor-bindings = <&rsr_scroll>;
+            sensor-bindings = <&scroll_encoder>;
         };
     };
 };
