@@ -52,6 +52,10 @@ lv_obj_t *zmk_display_status_screen() {
     lv_obj_t *screen;
 
     screen = lv_obj_create(NULL);
+    // LVGL 9 makes generic objects scrollable by default. On this 128x64 screen,
+    // that renders a vertical scrollbar at the left after the 180-degree rotation.
+    lv_obj_clear_flag(screen, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scrollbar_mode(screen, LV_SCROLLBAR_MODE_OFF);
 
     lv_style_init(&global_style);
     lv_style_set_bg_color(&global_style, lv_color_white());
