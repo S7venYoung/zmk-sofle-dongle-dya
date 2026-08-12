@@ -48,6 +48,19 @@ static struct zmk_widget_key_stats_status key_stats_status_widget;
 
 lv_style_t global_style;
 
+/* LVGL 9 applies theme decoration to generic containers created with
+ * lv_obj_create(). The old LVGL 8 screen expected these widget roots to be
+ * transparent; otherwise their clipped rounded border appears as a vertical
+ * line at the display edge. */
+static void make_widget_container_transparent(lv_obj_t *obj) {
+    lv_obj_set_style_bg_opa(obj, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN);
+    lv_obj_set_style_radius(obj, 0, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(obj, 0, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(obj, 0, LV_PART_MAIN);
+    lv_obj_set_style_shadow_width(obj, 0, LV_PART_MAIN);
+}
+
 lv_obj_t *zmk_display_status_screen() {
     lv_obj_t *screen;
 
@@ -109,6 +122,12 @@ lv_obj_t *zmk_display_status_screen() {
     zmk_widget_dongle_battery_status_init(&dongle_battery_status_widget, screen);
     lv_obj_align(zmk_widget_dongle_battery_status_obj(&dongle_battery_status_widget), LV_ALIGN_TOP_RIGHT, 0, 0);
 #endif
+
+    make_widget_container_transparent(screen);
+    uint32_t widget_count = lv_obj_get_child_count(screen);
+    for (uint32_t i = 0; i < widget_count; i++) {
+        make_widget_container_transparent(lv_obj_get_child(screen, i));
+    }
 
     return screen;
 }
