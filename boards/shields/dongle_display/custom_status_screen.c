@@ -110,5 +110,21 @@ lv_obj_t *zmk_display_status_screen() {
     lv_obj_align(zmk_widget_dongle_battery_status_obj(&dongle_battery_status_widget), LV_ALIGN_TOP_RIGHT, 0, 0);
 #endif
 
+    /*
+     * Mask the persistent three-pixel artefact at the physical left edge.
+     * It is outside the useful widget area and survives the LVGL 9 widget
+     * migration, rotation and SH1106 offset changes.
+     */
+    lv_obj_t *left_edge_mask = lv_obj_create(screen);
+    lv_obj_set_size(left_edge_mask, 3, 64);
+    lv_obj_align(left_edge_mask, LV_ALIGN_LEFT_MID, 0, 0);
+    lv_obj_set_style_bg_color(left_edge_mask, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(left_edge_mask, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_border_width(left_edge_mask, 0, LV_PART_MAIN);
+    lv_obj_set_style_radius(left_edge_mask, 0, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(left_edge_mask, 0, LV_PART_MAIN);
+    lv_obj_clear_flag(left_edge_mask, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_move_foreground(left_edge_mask);
+
     return screen;
 }
