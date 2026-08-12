@@ -48,27 +48,10 @@ static struct zmk_widget_key_stats_status key_stats_status_widget;
 
 lv_style_t global_style;
 
-/* Generic LVGL objects are scrollable by default. Widget containers that slightly
- * overflow their bounds can therefore draw a scrollbar on the 128x64 display. */
-static void disable_scrollbars_recursive(lv_obj_t *obj) {
-    lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
-
-    uint32_t child_count = lv_obj_get_child_count(obj);
-    for (uint32_t i = 0; i < child_count; i++) {
-        disable_scrollbars_recursive(lv_obj_get_child(obj, i));
-    }
-}
-
 lv_obj_t *zmk_display_status_screen() {
     lv_obj_t *screen;
 
     screen = lv_obj_create(NULL);
-    // LVGL 9 makes generic objects scrollable by default. On this 128x64 screen,
-    // that renders a vertical scrollbar at the left after the 180-degree rotation.
-    lv_obj_clear_flag(screen, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_scrollbar_mode(screen, LV_SCROLLBAR_MODE_OFF);
-
     lv_style_init(&global_style);
     lv_style_set_bg_color(&global_style, lv_color_white());
     lv_style_set_bg_opa(&global_style, LV_OPA_COVER);
@@ -126,8 +109,6 @@ lv_obj_t *zmk_display_status_screen() {
     zmk_widget_dongle_battery_status_init(&dongle_battery_status_widget, screen);
     lv_obj_align(zmk_widget_dongle_battery_status_obj(&dongle_battery_status_widget), LV_ALIGN_TOP_RIGHT, 0, 0);
 #endif
-
-    disable_scrollbars_recursive(screen);
 
     return screen;
 }
