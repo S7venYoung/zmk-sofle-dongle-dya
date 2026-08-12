@@ -24,11 +24,11 @@
 
 &mmv_input_listener { input-processors = <&zip_xy_scaler 2 1>; };
 
-&msc_input_listener { input-processors = <&zip_scroll_scaler 1 1>; };
+&msc_input_listener { input-processors = <&zip_scroll_scaler 2 1>; };
 
 &msc {
-    acceleration-exponent = <1>;      // 0
-    time-to-max-speed-ms = <100>;     // 300
+    acceleration-exponent = <0>;      // immediate encoder scroll
+    time-to-max-speed-ms = <0>;       // no acceleration ramp
     delay-ms = <0>;                   // 0
 };
 
