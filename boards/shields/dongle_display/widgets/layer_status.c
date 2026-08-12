@@ -16,6 +16,10 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include <zmk/endpoints.h>
 #include <zmk/keymap.h>
 
+#if IS_ENABLED(CONFIG_ZMK_CUSTOM_SETTINGS)
+#include <zmk/display_settings.h>
+#endif
+
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 
 struct layer_status_state {
@@ -62,7 +66,17 @@ int zmk_widget_layer_status_init(struct zmk_widget_layer_status *widget, lv_obj_
     lv_obj_set_width(widget->obj, CONFIG_ZMK_DONGLE_DISPLAY_LAYER_NAME_SCROLL_WIDTH);
     lv_label_set_long_mode(widget->obj, LV_LABEL_LONG_SCROLL_CIRCULAR);
 
-    // Set text alignment based on config
+    // Runtime setting: 0 = left, 1 = center, 2 = right.
+#if IS_ENABLED(CONFIG_ZMK_CUSTOM_SETTINGS)
+    int32_t alignment = zmk_display_settings_layer_alignment();
+    if (alignment == 2) {
+        lv_obj_set_style_text_align(widget->obj, LV_TEXT_ALIGN_RIGHT, 0);
+    } else if (alignment == 1) {
+        lv_obj_set_style_text_align(widget->obj, LV_TEXT_ALIGN_CENTER, 0);
+    } else {
+        lv_obj_set_style_text_align(widget->obj, LV_TEXT_ALIGN_LEFT, 0);
+    }
+#else
     if (strcmp(CONFIG_ZMK_DONGLE_DISPLAY_LAYER_TEXT_ALIGN, "right") == 0) {
         lv_obj_set_style_text_align(widget->obj, LV_TEXT_ALIGN_RIGHT, 0);
     } else if (strcmp(CONFIG_ZMK_DONGLE_DISPLAY_LAYER_TEXT_ALIGN, "center") == 0) {
@@ -70,6 +84,7 @@ int zmk_widget_layer_status_init(struct zmk_widget_layer_status *widget, lv_obj_
     } else {
         lv_obj_set_style_text_align(widget->obj, LV_TEXT_ALIGN_LEFT, 0);
     }
+#endif
 
     sys_slist_append(&widgets, &widget->node);
 
