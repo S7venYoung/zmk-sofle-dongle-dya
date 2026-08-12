@@ -54,13 +54,6 @@
     };
 
     behaviors {
-        scroll_encoder: scroll_encoder {
-            compatible = "zmk,behavior-sensor-rotate";
-            #sensor-binding-cells = <0>;
-            bindings = <&msc SCRL_DOWN>, <&msc SCRL_UP>;
-            tap-ms = <25>;
-        };
-
         rsr_vol: rsr_vol {
             compatible = "zmk,behavior-runtime-sensor-rotate";
             #sensor-binding-cells = <0>;
@@ -174,7 +167,7 @@
             >;
 
             display-name = "SYS";
-            sensor-bindings = <&scroll_encoder &rsr_trans>;
+            sensor-bindings = <&rsr_scroll &rsr_trans>;
         };
 
         layer_3 {
@@ -187,7 +180,7 @@
             >;
 
             display-name = ">L3<";
-            sensor-bindings = <&scroll_encoder>;
+            sensor-bindings = <&rsr_scroll>;
         };
     };
 };

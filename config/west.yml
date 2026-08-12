@@ -61,7 +61,7 @@ manifest:
       import: true
     - name: zmk-behavior-runtime-sensor-rotate
       remote: cormoran
-      revision: main
+      revision: feat/custom-settings-storage
     - name: zmk-module-ble-management
       remote: cormoran
       revision: main
