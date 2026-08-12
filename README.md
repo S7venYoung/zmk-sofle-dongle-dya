@@ -1,33 +1,161 @@
-- [中文](README.md)
-- [English](README_EN.md)
+# ZMK Sofle Dongle — DYA Studio
 
-# 更新列表
+这是为 Sofle 分体键盘、独立接收器和 OLED 底座维护的 ZMK 固件仓库。
 
-- 2026/7/29
-  1. 增加接收器 OLED 按键统计功能。
-  2. 屏幕显示历史总计 `T` 和今日总计 `D`，仅统计按键，不统计编码器和摇杆。
+本项目在原有底座文件和键位配置上增加 DYA Studio、运行时配置以及接收器按键统计功能。
 
-- 2026/3/6
-  1. 全部模型都有修改，绘制了2各版本的手托
-  2. 修复了旋钮失效的问题
-  3. 修改了防抖时间，如果用的轴体性能号可以缩减防抖时间。如果用的轴体品质一半，可以拉长防抖时间。
-  
-- 2024/12/21
-  
-- 2024/10/24
-  1. 修改供电模式，功耗降低。
-  2. 修正RGB供电自动关闭的功能。
- 
--2026/6/22 键盘支持DYA STUDIO改键了中文用户联系店主索取中文版DYA STUDIO安装包。这个上位机软件改键比ZMK studio更好用。
+## 分支说明
 
-> 请更新最新的固件。
-> 
----
-# 联系我
+| 分支 | 用途 | 状态 |
+| --- | --- | --- |
+| `main` | 当前稳定固件，基于旧版 DYA/ZMK 技术栈 | 稳定 |
+| `4.1` | 基于 `main+dya` 和 Zephyr 4.1 的新版适配 | 开发测试中 |
+| `combo` | 旧技术栈上的 Runtime Combo 兼容实验 | 不建议日常使用 |
 
-如需3D打印的模型文件或者键盘有任何异常和故障，请联系380465425@qq.com
+日常使用请优先选择 `main`。需要测试新版 Runtime Macro 和接收器屏幕编辑时，选择 `4.1`。
 
-# Sofle键位图
+## 4.1 分支功能
 
-<img src="keymap-drawer/eyelash_sofle.svg" >
+- DYA Studio 改键
+- Runtime Macro
+- Runtime Sensor Rotate 编码器配置
+- Runtime Input Processor
+- BLE 管理
+- Settings RPC
+- 接收器 OLED 显示
+- 左右手电量显示
+- Mac 修饰符图标
+- 层级名称居中显示
+- 接收器按键统计
+- DYA Custom Settings 屏幕设置
 
+### 技术栈
+
+- ZMK：`cormoran/zmk#main+dya`
+- Zephyr：`v4.1.0+zmk-fixes+nrf-half-duplex-uart`
+- DYA Studio Custom Protocol
+- `zmk-feature-custom-settings`
+- `zmk-feature-runtime-macro`
+
+## 固件文件
+
+GitHub Actions 构建完成后，在运行记录的 Artifacts 中下载固件压缩包。
+
+| 固件 | 刷写位置 |
+| --- | --- |
+| `eyelash_sofle_central_dongle_oled.uf2` | 独立接收器 |
+| `eyelash_sofle_peripheral_left...uf2` | 键盘左手 |
+| `eyelash_sofle_peripheral_right...uf2` | 键盘右手 |
+| `settings_reset...uf2` | 清除 ZMK 配对与设置 |
+
+升级到 `4.1` 分支时，建议接收器、左手和右手使用同一次 Actions 构建生成的固件，不要混用不同分支或不同构建批次。
+
+如连接异常，可依次刷入 `settings_reset`，再重新刷接收器、左手和右手固件并重新配对。清除设置会删除已保存的蓝牙配对和运行时配置。
+
+## Runtime Macro
+
+`4.1` 分支已启用 Runtime Macro，现有 keymap 中的静态 Macro 仍然保留，两者互不冲突。
+
+第 4 层左上角按键绑定为：
+
+```dts
+&rmacro 0
+```
+
+使用方法：
+
+1. 用 USB 连接接收器。
+2. 打开 DYA Studio。
+3. 进入 Macro 页面。
+4. 创建 Macro 并确认其 Slot 编号。
+5. Slot 0 对应当前预留的 `&rmacro 0` 按键。
+6. 点击保存后，Macro 会写入接收器设置。
+
+刚刷入固件、尚未创建 Slot 0 时，按下该键不会执行任何内容。
+
+## 接收器屏幕编辑
+
+`4.1` 分支通过 DYA Custom Settings 暴露屏幕选项。进入 DYA Studio 的 Settings 页面，找到 `s7ven_display`。
+
+| 设置 | 作用 | 范围 |
+| --- | --- | --- |
+| `key_stats_enabled` | 是否显示按键统计 | 开/关 |
+| `key_stats_x` | 统计模块横坐标 | 0–78 |
+| `key_stats_y` | 统计模块纵坐标 | 0–46 |
+| `layer_alignment` | 层级文字对齐方式 | 0–2 |
+
+`layer_alignment`：
+
+- `0`：左对齐
+- `1`：居中
+- `2`：右对齐
+
+当前版本保存屏幕设置后需要重启接收器才能重新创建 OLED 布局。屏幕旋转仍由设备树固定，不提供运行时修改，以避免 OLED 控制器方向配置错误导致乱码。
+
+## 按键统计
+
+接收器 OLED 显示：
+
+- `T`：历史累计按键次数
+- `D`：本次启动后的按键次数
+
+仅统计物理按键按下事件：
+
+- 不统计编码器
+- 不统计摇杆或鼠标移动
+- 长按自动重复只计一次物理按下
+
+数字会按屏幕宽度缩写，例如：
+
+- `999`
+- `1.4k`
+- `1.4m`
+- `1.4b`
+
+## 编码器
+
+当前 keymap 中：
+
+- BASE：音量控制
+- NAV：音量控制
+- SYS：上下滚动
+- 第 4 层：固定滚动行为
+
+Runtime Macro 和屏幕设置不应修改这些编码器绑定。
+
+## 编译
+
+仓库使用 GitHub Actions 自动构建：
+
+1. 切换到需要构建的分支。
+2. 打开 Actions。
+3. 运行 Build workflow，或向该分支提交一次改动。
+4. 等待全部 Build Job 完成。
+5. 下载 Artifacts。
+
+`4.1` 目前属于开发分支。刷写前必须确认接收器、左右手和 `settings_reset` 均构建成功。
+
+## 注意事项
+
+- 不要将 `main`、`combo` 和 `4.1` 的接收器与左右手固件混刷。
+- 修改 DYA 运行时设置前，确保连接的是接收器串口。
+- 浏览器提示串口已打开时，关闭其他 DYA Studio 页面或占用串口的软件。
+- 刷写新版底层后出现连接问题时，优先执行一次完整的 Settings Reset 和重新配对。
+- `4.1` 分支仍需通过 Actions 编译和实机验证后再作为日常固件使用。
+
+## 键位图
+
+![Sofle 键位图](keymap-drawer/eyelash_sofle.svg)
+
+## 参考项目
+
+- [DYA Studio Developer Guide](https://studio.dya.cormoran.works/developer-guide)
+- [cormoran/zmk-feature-runtime-macro](https://github.com/cormoran/zmk-feature-runtime-macro)
+- [cormoran/zmk-feature-custom-settings](https://github.com/cormoran/zmk-feature-custom-settings)
+- [englmaxi/zmk-dongle-display](https://github.com/englmaxi/zmk-dongle-display)
+
+## 联系方式
+
+如需 3D 打印模型文件，或键盘出现异常和故障，请联系：
+
+`380465425@qq.com`
