@@ -74,7 +74,7 @@ lv_obj_t *zmk_display_status_screen() {
     if (zmk_display_settings_key_stats_enabled()) {
         zmk_widget_key_stats_status_init(&key_stats_status_widget, screen);
         lv_obj_align(zmk_widget_key_stats_status_obj(&key_stats_status_widget), LV_ALIGN_TOP_LEFT,
-                     zmk_display_settings_key_stats_x(), zmk_display_settings_key_stats_y());
+                     MAX(0, zmk_display_settings_key_stats_x() - 4), zmk_display_settings_key_stats_y());
     }
 #else
     zmk_widget_key_stats_status_init(&key_stats_status_widget, screen);
