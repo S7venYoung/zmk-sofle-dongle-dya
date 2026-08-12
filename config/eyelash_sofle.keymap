@@ -174,7 +174,7 @@
             >;
 
             display-name = "SYS";
-            sensor-bindings = <&rsr_scroll &rsr_trans>;
+            sensor-bindings = <&scroll_encoder &rsr_trans>;
         };
 
         layer_3 {
