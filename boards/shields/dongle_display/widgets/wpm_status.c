@@ -12,6 +12,10 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #include "wpm_status.h"
 
+#if IS_ENABLED(CONFIG_ZMK_CUSTOM_SETTINGS)
+#include <zmk/display_settings.h>
+#endif
+
 LV_IMG_DECLARE(sym_speedometer);
 
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
@@ -40,7 +44,12 @@ static void set_wpm(struct zmk_widget_wpm_status *widget, struct wpm_status_stat
     }
     last_wpm = state.wpm;
 
-    if(strstr(CONFIG_ZMK_DONGLE_DISPLAY_WPM_DISABLED_LAYERS, state.layer) != NULL) {
+    const char *disabled_layers = CONFIG_ZMK_DONGLE_DISPLAY_WPM_DISABLED_LAYERS;
+#if IS_ENABLED(CONFIG_ZMK_CUSTOM_SETTINGS)
+    disabled_layers = zmk_display_settings_wpm_disabled_layers();
+#endif
+    if (state.layer != NULL && disabled_layers[0] != '\0' &&
+        strstr(disabled_layers, state.layer) != NULL) {
         lv_label_set_text(widget->wpm_label, "-");
         return;
     }

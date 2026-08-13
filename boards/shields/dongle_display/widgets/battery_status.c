@@ -20,6 +20,10 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #include "battery_status.h"
 
+#if IS_ENABLED(CONFIG_ZMK_CUSTOM_SETTINGS)
+#include <zmk/display_settings.h>
+#endif
+
 #if IS_ENABLED(CONFIG_ZMK_DONGLE_DISPLAY_DONGLE_BATTERY)
     #define SOURCE_OFFSET 1
 #else
@@ -38,6 +42,7 @@ struct battery_state {
     uint8_t source;
     uint8_t level;
     bool usb_present;
+    bool central;
 };
 
 struct battery_object {
@@ -91,6 +96,11 @@ static void draw_battery(lv_obj_t *canvas, uint8_t level, bool usb_present) {
 }
 
 static void set_battery_symbol(lv_obj_t *widget, struct battery_state state) {
+#if IS_ENABLED(CONFIG_ZMK_CUSTOM_SETTINGS)
+    if (state.central && !zmk_display_settings_dongle_battery_enabled()) {
+        return;
+    }
+#endif
     if (state.source >= ZMK_SPLIT_BLE_PERIPHERAL_COUNT + SOURCE_OFFSET) {
         return;
     }
@@ -120,8 +130,14 @@ void battery_status_update_cb(struct battery_state state) {
 static struct battery_state peripheral_battery_status_get_state(const zmk_event_t *eh) {
     const struct zmk_peripheral_battery_state_changed *ev = as_zmk_peripheral_battery_state_changed(eh);
     return (struct battery_state){
-        .source = ev->source + SOURCE_OFFSET,
+        .source = ev->source +
+#if IS_ENABLED(CONFIG_ZMK_CUSTOM_SETTINGS)
+                  (zmk_display_settings_dongle_battery_enabled() ? 1 : 0),
+#else
+                  SOURCE_OFFSET,
+#endif
         .level = ev->state_of_charge,
+        .central = false,
     };
 }
 
@@ -133,6 +149,7 @@ static struct battery_state central_battery_status_get_state(const zmk_event_t *
 #if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
         .usb_present = zmk_usb_is_powered(),
 #endif /* IS_ENABLED(CONFIG_USB_DEVICE_STACK) */
+        .central = true,
     };
 }
 

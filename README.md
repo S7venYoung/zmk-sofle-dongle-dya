@@ -92,7 +92,7 @@ GitHub Actions 构建完成后，在运行记录的 Artifacts 中下载固件压
 
 ## 接收器屏幕编辑
 
-`4.1` 分支通过 DYA Custom Settings 暴露屏幕选项。进入 DYA Studio 的 Settings 页面，找到 `s7ven_display`。
+`4.1` 分支通过 DYA Custom Settings 暴露屏幕选项。进入 DYA Studio 的 Settings 页面，找到 `dongle_display_settings`。修改后先点击 `Write`，再点击页面顶部的 `Save`，然后重启接收器应用新布局。
 
 | 设置 | 作用 | 范围 |
 | --- | --- | --- |
@@ -100,6 +100,14 @@ GitHub Actions 构建完成后，在运行记录的 Artifacts 中下载固件压
 | `key_stats_x` | 统计模块横坐标 | 0–78 |
 | `key_stats_y` | 统计模块纵坐标 | 0–46 |
 | `layer_alignment` | 层级文字对齐方式 | 0–2 |
+| `layer_width` | 层级名称滚动区域宽度 | 20–78 |
+| `mac_modifiers` | Mac/Windows 修饰符图标 | `true`=Mac，`false`=Windows |
+| `dongle_battery_enabled` | 是否显示接收器自身电量 | 开/关 |
+| `bongo_cat_enabled` | 是否显示猫动画 | 开/关 |
+| `modifiers_enabled` | 是否显示修饰符图标 | 开/关 |
+| `layer_enabled` | 是否显示层级名称 | 开/关 |
+| `wpm_enabled` | 是否显示 WPM | 开/关 |
+| `wpm_disabled_layers` | 不显示 WPM 的层名，逗号分隔 | 字符串 |
 
 `layer_alignment`：
 
@@ -107,7 +115,7 @@ GitHub Actions 构建完成后，在运行记录的 Artifacts 中下载固件压
 - `1`：居中
 - `2`：右对齐
 
-当前版本保存屏幕设置后需要重启接收器才能重新创建 OLED 布局。屏幕旋转仍由设备树固定，不提供运行时修改，以避免 OLED 控制器方向配置错误导致乱码。
+当前版本保存屏幕设置后需要重启接收器才能重新创建 OLED 布局。屏幕旋转、分辨率、`segment-offset`、反色和颜色深度仍由设备树固定，不提供运行时修改，以避免 OLED 控制器参数错误导致乱码。
 
 ## 按键统计
 

@@ -18,6 +18,10 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #include "modifiers.h"
 
+#if IS_ENABLED(CONFIG_ZMK_CUSTOM_SETTINGS)
+#include <zmk/display_settings.h>
+#endif
+
 struct modifiers_state {    
     uint8_t modifiers;
 };
@@ -42,7 +46,6 @@ struct modifier_symbol ms_shift = {
     .symbol_dsc = &shift_icon,
 };
 
-#if IS_ENABLED(CONFIG_ZMK_DONGLE_DISPLAY_MAC_MODIFIERS)
 LV_IMG_DECLARE(opt_icon);
 struct modifier_symbol ms_opt = {
     .modifier = MOD_LALT | MOD_RALT,
@@ -55,14 +58,14 @@ struct modifier_symbol ms_cmd = {
     .symbol_dsc = &cmd_icon,
 };
 
-struct modifier_symbol *modifier_symbols[] = {
+static struct modifier_symbol *mac_modifier_symbols[] = {
     // this order determines the order of the symbols
     &ms_control,
     &ms_opt,
     &ms_cmd,
     &ms_shift
 };
-#else
+
 LV_IMG_DECLARE(alt_icon);
 struct modifier_symbol ms_alt = {
     .modifier = MOD_LALT | MOD_RALT,
@@ -75,16 +78,16 @@ struct modifier_symbol ms_win = {
     .symbol_dsc = &win_icon,
 };
 
-struct modifier_symbol *modifier_symbols[] = {
+static struct modifier_symbol *win_modifier_symbols[] = {
     // this order determines the order of the symbols
     &ms_win,
     &ms_alt,
     &ms_control,
     &ms_shift
 };
-#endif
 
-#define NUM_SYMBOLS (sizeof(modifier_symbols) / sizeof(struct modifier_symbol *))
+#define NUM_SYMBOLS 4
+static struct modifier_symbol **modifier_symbols;
 
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 
@@ -136,6 +139,12 @@ ZMK_DISPLAY_WIDGET_LISTENER(widget_modifiers, struct modifiers_state,
 ZMK_SUBSCRIPTION(widget_modifiers, zmk_keycode_state_changed);
 
 int zmk_widget_modifiers_init(struct zmk_widget_modifiers *widget, lv_obj_t *parent) {
+    bool use_mac = IS_ENABLED(CONFIG_ZMK_DONGLE_DISPLAY_MAC_MODIFIERS);
+#if IS_ENABLED(CONFIG_ZMK_CUSTOM_SETTINGS)
+    use_mac = zmk_display_settings_mac_modifiers();
+#endif
+    modifier_symbols = use_mac ? mac_modifier_symbols : win_modifier_symbols;
+
     widget->obj = lv_obj_create(parent);
 
     lv_obj_set_size(widget->obj, NUM_SYMBOLS * (SIZE_SYMBOLS + 1) + 1, SIZE_SYMBOLS + 3);

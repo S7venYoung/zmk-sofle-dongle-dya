@@ -63,11 +63,11 @@ ZMK_SUBSCRIPTION(widget_layer_status, zmk_layer_state_changed);
 
 int zmk_widget_layer_status_init(struct zmk_widget_layer_status *widget, lv_obj_t *parent) {
     widget->obj = lv_label_create(parent);
-    lv_obj_set_width(widget->obj, CONFIG_ZMK_DONGLE_DISPLAY_LAYER_NAME_SCROLL_WIDTH);
     lv_label_set_long_mode(widget->obj, LV_LABEL_LONG_SCROLL_CIRCULAR);
 
     // Runtime setting: 0 = left, 1 = center, 2 = right.
 #if IS_ENABLED(CONFIG_ZMK_CUSTOM_SETTINGS)
+    lv_obj_set_width(widget->obj, zmk_display_settings_layer_width());
     int32_t alignment = zmk_display_settings_layer_alignment();
     if (alignment == 2) {
         lv_obj_set_style_text_align(widget->obj, LV_TEXT_ALIGN_RIGHT, 0);
@@ -77,6 +77,7 @@ int zmk_widget_layer_status_init(struct zmk_widget_layer_status *widget, lv_obj_
         lv_obj_set_style_text_align(widget->obj, LV_TEXT_ALIGN_LEFT, 0);
     }
 #else
+    lv_obj_set_width(widget->obj, CONFIG_ZMK_DONGLE_DISPLAY_LAYER_NAME_SCROLL_WIDTH);
     if (strcmp(CONFIG_ZMK_DONGLE_DISPLAY_LAYER_TEXT_ALIGN, "right") == 0) {
         lv_obj_set_style_text_align(widget->obj, LV_TEXT_ALIGN_RIGHT, 0);
     } else if (strcmp(CONFIG_ZMK_DONGLE_DISPLAY_LAYER_TEXT_ALIGN, "center") == 0) {
