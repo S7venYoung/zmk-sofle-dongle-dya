@@ -65,7 +65,7 @@ lv_obj_t *zmk_display_status_screen() {
 
 #if IS_ENABLED(CONFIG_ZMK_KEY_STATS)
     zmk_widget_key_stats_status_init(&key_stats_status_widget, screen);
-    lv_obj_align(zmk_widget_key_stats_status_obj(&key_stats_status_widget), LV_ALIGN_TOP_LEFT, 42, 0);
+    lv_obj_align(zmk_widget_key_stats_status_obj(&key_stats_status_widget), LV_ALIGN_TOP_LEFT, 38, 0);
 #endif
 
 #if IS_ENABLED(CONFIG_ZMK_DONGLE_DISPLAY_BONGO_CAT)
