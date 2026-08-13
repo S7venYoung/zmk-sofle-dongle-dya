@@ -9,7 +9,12 @@
 #include <cormoran/zmk/custom_settings.h>
 #include <zmk/display_settings.h>
 
-#define DISPLAY_SETTINGS_SUBSYSTEM "s7ven_display"
+/*
+ * Custom Settings serializes a setting by looking up this identifier in the
+ * registered DYA RPC subsystem table. Reuse the Custom Settings subsystem;
+ * "s7ven_display" was only a setting group name and had no RPC registration.
+ */
+#define DISPLAY_SETTINGS_SUBSYSTEM "cormoran_custom_settings"
 
 ZMK_CUSTOM_SETTING_DEFINE(
     display_key_stats_enabled, DISPLAY_SETTINGS_SUBSYSTEM, "key_stats_enabled",
