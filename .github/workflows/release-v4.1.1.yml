@@ -1,0 +1,67 @@
+name: Publish v4.1.1 release
+
+on:
+  push:
+    branches:
+      - "4.1"
+    paths:
+      - ".github/workflows/release-v4.1.1.yml"
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download verified firmware artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: firmware
+          path: release
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: 31765092370
+
+      - name: Prepare complete firmware archive
+        run: |
+          find release -type f -name "*.uf2" -print
+          cd release
+          zip -9 ../zmk-sofle-dongle-dya-v4.1.1.zip ./*.uf2
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v4.1.1
+          name: v4.1.1 - DYA Studio 4.1
+          target_commitish: 4.1
+          prerelease: false
+          generate_release_notes: false
+          body: |
+            ## 在线更新
+
+            基于 ZMK / Zephyr 4.1 与 DYA Studio 的 Sofle Dongle 固件更新。
+
+            ## 功能特性
+
+            - DYA Studio 在线键位、编码器、宏与 Combo 配置
+            - 接收器 OLED 按键总计与今日统计
+            - DYA 自定义接收器显示设置，并支持即时生效
+            - 设备信息（Device Info）
+            - 左右手电量百分比、连接状态、修饰键和层级显示
+            - 修复 SH1106 显示偏移、反色与左侧竖线
+            - 恢复 OLED 原生 Idle 熄屏逻辑（默认约 30 秒）
+            - 保留鼠标摇杆、编码器滚动与音量控制
+
+            ## 固件说明
+
+            - `eyelash_sofle_central_dongle_oled.uf2`：接收器
+            - `eyelash_sofle_peripheral_left_nice_view.uf2`：左手
+            - `eyelash_sofle_peripheral_right_nice_view.uf2`：右手
+            - `settings_reset.uf2`：清除保存设置
+            - `zmk-sofle-dongle-dya-v4.1.1.zip`：完整固件包
+          files: |
+            release/*.uf2
+            zmk-sofle-dongle-dya-v4.1.1.zip
+          fail_on_unmatched_files: true
