@@ -23,6 +23,7 @@
 - Runtime Input Processor
 - BLE 管理
 - Settings RPC
+- Device Info（固件、硬件和运行状态诊断）
 - 接收器 OLED 显示
 - 左右手电量显示
 - Mac 修饰符图标
@@ -36,6 +37,7 @@
 - Zephyr：`v4.1.0+zmk-fixes+nrf-half-duplex-uart`
 - DYA Studio Custom Protocol
 - `zmk-feature-custom-settings`
+- `zmk-feature-device-info`
 - `zmk-feature-runtime-macro`
 - `zmk-feature-runtime-combo`
 
@@ -116,6 +118,18 @@ GitHub Actions 构建完成后，在运行记录的 Artifacts 中下载固件压
 - `2`：右对齐
 
 当前版本保存屏幕设置后需要重启接收器才能重新创建 OLED 布局。屏幕旋转、分辨率、`segment-offset`、反色和颜色深度仍由设备树固定，不提供运行时修改，以避免 OLED 控制器参数错误导致乱码。
+
+## Device Info
+
+`4.1` 分支仅在接收器固件中启用 Device Info。通过 USB 连接接收器并打开 DYA Studio 的 Troubleshooting 页面后，可以查看：
+
+- ZMK、Zephyr、配置仓库及模块的版本信息
+- 编译时间、板型和固件 Build ID
+- MCU、Flash、SRAM 和上次复位原因
+- USB、BLE、分体、显示等编译配置
+- 接收器运行时间和 Zephyr 设备初始化状态
+
+设备信息默认遵循 Studio 的安全访问设置。左右手固件不启用该模块；DYA 读取的是 USB 接收器本身的信息。
 
 ## 按键统计
 
