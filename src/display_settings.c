@@ -6,11 +6,14 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
 #include <zephyr/sys/util.h>
 
 #include <cormoran/zmk/custom_settings.h>
+#include <zmk/activity.h>
 #include <zmk/display_settings.h>
+#include <zmk/event_manager.h>
 
 #if IS_ENABLED(CONFIG_ZMK_STUDIO_RPC)
 #include <zmk/studio/custom.h>
@@ -136,6 +139,14 @@ ZMK_CUSTOM_SETTING_DEFINE(
     ZMK_CUSTOM_SETTING_PERMISSION_SECURE,
     ZMK_CUSTOM_SETTING_NO_CONSTRAINT);
 
+ZMK_CUSTOM_SETTING_DEFINE(
+    display_screen_timeout_seconds, DISPLAY_SETTINGS_SUBSYSTEM, "screen_timeout_seconds",
+    ZMK_CUSTOM_SETTING_VALUE_TYPE_INT32, ZMK_CUSTOM_SETTING_VALUE_INT32(30),
+    ZMK_CUSTOM_SETTING_CONFIDENTIALITY_RPC_PUBLIC,
+    ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE,
+    ZMK_CUSTOM_SETTING_PERMISSION_SECURE,
+    ZMK_CUSTOM_SETTING_RANGE_INT32(0, 7200));
+
 bool zmk_display_settings_key_stats_enabled(void) {
     bool value = true;
     zmk_custom_setting_get_bool(&display_key_stats_enabled, &value);
@@ -193,3 +204,41 @@ const char *zmk_display_settings_wpm_disabled_layers(void) {
     value[MIN(size, sizeof(value) - 1)] = '\0';
     return value;
 }
+
+int32_t zmk_display_settings_screen_timeout_seconds(void) {
+    int32_t value = 30;
+    zmk_custom_setting_get_int32(&display_screen_timeout_seconds, &value);
+    return value;
+}
+
+__attribute__((weak)) void zmk_display_settings_runtime_changed(void) {}
+
+static void apply_screen_timeout(void) {
+    int32_t seconds = zmk_display_settings_screen_timeout_seconds();
+    zmk_activity_set_idle_ms((uint32_t)seconds * 1000U);
+}
+
+static int display_settings_listener_cb(const zmk_event_t *eh) {
+    if (as_zmk_custom_settings_initialized(eh) != NULL) {
+        apply_screen_timeout();
+        zmk_display_settings_runtime_changed();
+        return ZMK_EV_EVENT_BUBBLE;
+    }
+
+    const struct zmk_custom_setting_changed *ev = as_zmk_custom_setting_changed(eh);
+    if (ev == NULL || ev->setting == NULL || ev->setting->custom_subsystem_id == NULL ||
+        strcmp(ev->setting->custom_subsystem_id, DISPLAY_SETTINGS_SUBSYSTEM) != 0) {
+        return ZMK_EV_EVENT_BUBBLE;
+    }
+
+    if (ev->setting == &display_screen_timeout_seconds) {
+        apply_screen_timeout();
+    }
+
+    zmk_display_settings_runtime_changed();
+    return ZMK_EV_EVENT_BUBBLE;
+}
+
+ZMK_LISTENER(display_settings, display_settings_listener_cb);
+ZMK_SUBSCRIPTION(display_settings, zmk_custom_setting_changed);
+ZMK_SUBSCRIPTION(display_settings, zmk_custom_settings_initialized);

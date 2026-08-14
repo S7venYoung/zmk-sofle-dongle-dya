@@ -20,3 +20,7 @@ bool zmk_display_settings_modifiers_enabled(void);
 bool zmk_display_settings_layer_enabled(void);
 bool zmk_display_settings_wpm_enabled(void);
 const char *zmk_display_settings_wpm_disabled_layers(void);
+int32_t zmk_display_settings_screen_timeout_seconds(void);
+
+/* Implemented by the active status screen. Called after a runtime setting changes. */
+void zmk_display_settings_runtime_changed(void);

@@ -9,6 +9,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include <zmk/display/widgets/layer_status.h>
 #include <zmk/endpoints.h>
 #include <zmk/keymap.h>
+#include <zmk/wpm.h>
 
 #include "wpm_status.h"
 
@@ -71,6 +72,15 @@ static void wpm_status_update_cb(struct wpm_status_state state)
 ZMK_DISPLAY_WIDGET_LISTENER(widget_wpm_status, struct wpm_status_state,
                             wpm_status_update_cb, get_state)
 ZMK_SUBSCRIPTION(widget_wpm_status, zmk_wpm_state_changed);
+
+void zmk_widget_wpm_status_refresh(struct zmk_widget_wpm_status *widget)
+{
+    last_wpm = -1;
+    set_wpm(widget, (struct wpm_status_state) {
+        .wpm = zmk_wpm_get_state(),
+        .layer = zmk_keymap_layer_name(zmk_keymap_highest_layer_active()),
+    });
+}
 
 int zmk_widget_wpm_status_init(struct zmk_widget_wpm_status *widget, lv_obj_t *parent)
 {

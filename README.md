@@ -94,7 +94,7 @@ GitHub Actions 构建完成后，在运行记录的 Artifacts 中下载固件压
 
 ## 接收器屏幕编辑
 
-`4.1` 分支通过 DYA Custom Settings 暴露屏幕选项。进入 DYA Studio 的 Settings 页面，找到 `dongle_display_settings`。修改后先点击 `Write`，再点击页面顶部的 `Save`，然后重启接收器应用新布局。
+`4.1` 分支通过 DYA Custom Settings 暴露屏幕选项。进入 DYA Studio 的 Settings 页面，找到 `dongle_display_settings`。修改后点击 `Write` 即时预览；满意后再点击页面顶部的 `Save`，让设置在断电重启后继续保留。
 
 | 设置 | 作用 | 范围 |
 | --- | --- | --- |
@@ -110,6 +110,7 @@ GitHub Actions 构建完成后，在运行记录的 Artifacts 中下载固件压
 | `layer_enabled` | 是否显示层级名称 | 开/关 |
 | `wpm_enabled` | 是否显示 WPM | 开/关 |
 | `wpm_disabled_layers` | 不显示 WPM 的层名，逗号分隔 | 字符串 |
+| `screen_timeout_seconds` | 无操作后屏幕熄灭时间；`0` 表示不自动熄灭 | 0–7200 秒 |
 
 `layer_alignment`：
 
@@ -117,7 +118,9 @@ GitHub Actions 构建完成后，在运行记录的 Artifacts 中下载固件压
 - `1`：居中
 - `2`：右对齐
 
-当前版本保存屏幕设置后需要重启接收器才能重新创建 OLED 布局。屏幕旋转、分辨率、`segment-offset`、反色和颜色深度仍由设备树固定，不提供运行时修改，以避免 OLED 控制器参数错误导致乱码。
+通过 DYA 写入以上设置后，OLED 会立即刷新；点击页面顶部的 `Save` 后可在断电重启后保留。屏幕熄灭沿用 ZMK 的空闲状态，因此修改 `screen_timeout_seconds` 也会改变背光、RGB 等配置为“空闲时自动关闭”的功能触发时间。当前默认值是 30 秒。
+
+屏幕旋转、分辨率、`segment-offset`、反色和颜色深度仍由设备树固定，不提供运行时修改，以避免 OLED 控制器参数错误导致乱码。
 
 ## Device Info
 

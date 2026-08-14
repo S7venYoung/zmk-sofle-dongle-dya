@@ -49,6 +49,11 @@ struct battery_object {
     lv_obj_t *symbol;
     lv_obj_t *label;
 } battery_objects[ZMK_SPLIT_BLE_PERIPHERAL_COUNT + SOURCE_OFFSET];
+
+static struct battery_state central_state;
+static bool central_state_valid;
+static struct battery_state peripheral_states[MAX(1, ZMK_SPLIT_BLE_PERIPHERAL_COUNT)];
+static bool peripheral_state_valid[MAX(1, ZMK_SPLIT_BLE_PERIPHERAL_COUNT)];
     
 static lv_color_t battery_image_buffer[ZMK_SPLIT_BLE_PERIPHERAL_COUNT + SOURCE_OFFSET][BUFFER_SIZE];
 
@@ -95,18 +100,13 @@ static void draw_battery(lv_obj_t *canvas, uint8_t level, bool usb_present) {
     lv_canvas_finish_layer(canvas, &layer);
 }
 
-static void set_battery_symbol(lv_obj_t *widget, struct battery_state state) {
-#if IS_ENABLED(CONFIG_ZMK_CUSTOM_SETTINGS)
-    if (state.central && !zmk_display_settings_dongle_battery_enabled()) {
+static void set_battery_symbol(uint8_t object_index, struct battery_state state) {
+    if (object_index >= ZMK_SPLIT_BLE_PERIPHERAL_COUNT + SOURCE_OFFSET) {
         return;
     }
-#endif
-    if (state.source >= ZMK_SPLIT_BLE_PERIPHERAL_COUNT + SOURCE_OFFSET) {
-        return;
-    }
-    LOG_DBG("source: %d, level: %d, usb: %d", state.source, state.level, state.usb_present);
-    lv_obj_t *symbol = battery_objects[state.source].symbol;
-    lv_obj_t *label = battery_objects[state.source].label;
+    LOG_DBG("source: %d, level: %d, usb: %d", object_index, state.level, state.usb_present);
+    lv_obj_t *symbol = battery_objects[object_index].symbol;
+    lv_obj_t *label = battery_objects[object_index].label;
 
     draw_battery(symbol, state.level, state.usb_present);
     lv_label_set_text_fmt(label, "%4u%% ", state.level);
@@ -122,20 +122,50 @@ static void set_battery_symbol(lv_obj_t *widget, struct battery_state state) {
     }
 }
 
+void zmk_widget_dongle_battery_status_refresh(struct zmk_widget_dongle_battery_status *widget) {
+    ARG_UNUSED(widget);
+
+    for (int i = 0; i < ZMK_SPLIT_BLE_PERIPHERAL_COUNT + SOURCE_OFFSET; i++) {
+        lv_obj_add_flag(battery_objects[i].symbol, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(battery_objects[i].label, LV_OBJ_FLAG_HIDDEN);
+    }
+
+    bool show_central = IS_ENABLED(CONFIG_ZMK_DONGLE_DISPLAY_DONGLE_BATTERY);
+#if IS_ENABLED(CONFIG_ZMK_CUSTOM_SETTINGS)
+    show_central = show_central && zmk_display_settings_dongle_battery_enabled();
+#endif
+
+    uint8_t offset = show_central ? 1U : 0U;
+    if (show_central && central_state_valid) {
+        set_battery_symbol(0, central_state);
+    }
+
+    for (uint8_t i = 0; i < ZMK_SPLIT_BLE_PERIPHERAL_COUNT; i++) {
+        if (peripheral_state_valid[i]) {
+            set_battery_symbol(i + offset, peripheral_states[i]);
+        }
+    }
+}
+
 void battery_status_update_cb(struct battery_state state) {
+    if (state.central) {
+        central_state = state;
+        central_state_valid = true;
+    } else if (state.source < ZMK_SPLIT_BLE_PERIPHERAL_COUNT) {
+        peripheral_states[state.source] = state;
+        peripheral_state_valid[state.source] = true;
+    }
+
     struct zmk_widget_dongle_battery_status *widget;
-    SYS_SLIST_FOR_EACH_CONTAINER(&widgets, widget, node) { set_battery_symbol(widget->obj, state); }
+    SYS_SLIST_FOR_EACH_CONTAINER(&widgets, widget, node) {
+        zmk_widget_dongle_battery_status_refresh(widget);
+    }
 }
 
 static struct battery_state peripheral_battery_status_get_state(const zmk_event_t *eh) {
     const struct zmk_peripheral_battery_state_changed *ev = as_zmk_peripheral_battery_state_changed(eh);
     return (struct battery_state){
-        .source = ev->source +
-#if IS_ENABLED(CONFIG_ZMK_CUSTOM_SETTINGS)
-                  (zmk_display_settings_dongle_battery_enabled() ? 1 : 0),
-#else
-                  SOURCE_OFFSET,
-#endif
+        .source = ev->source,
         .level = ev->state_of_charge,
         .central = false,
     };
