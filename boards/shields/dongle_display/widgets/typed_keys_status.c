@@ -21,6 +21,7 @@
 #define HID_KEY_A 0x04
 #define HID_KEY_Z 0x1D
 #define HID_KEY_BACKSPACE 0x2A
+#define TYPED_KEYS_IDLE_TIMEOUT K_SECONDS(5)
 
 struct typed_keys_state {
     char text[20];
@@ -32,6 +33,8 @@ static size_t typed_length;
 static char layer_letter;
 static uint8_t pressed_modifiers;
 static bool shortcut_key_down;
+static bool idle_layer_visible = true;
+static struct k_work_delayable typed_keys_idle_work;
 
 static void clear_typed_keys(void) {
     typed_length = 0;
@@ -57,6 +60,12 @@ static struct typed_keys_state typed_keys_get_state(const zmk_event_t *eh) {
 
     const struct zmk_keycode_state_changed *key_ev = as_zmk_keycode_state_changed(eh);
     if (key_ev != NULL && key_ev->usage_page == HID_USAGE_KEY) {
+        if (key_ev->state) {
+            idle_layer_visible = false;
+            k_work_reschedule_for_queue(zmk_display_work_q(), &typed_keys_idle_work,
+                                        TYPED_KEYS_IDLE_TIMEOUT);
+        }
+
         if (is_mod(key_ev->usage_page, key_ev->keycode)) {
             if (key_ev->state) {
                 /* Start a fresh display sequence for the shortcut being entered. */
@@ -89,7 +98,7 @@ static struct typed_keys_state typed_keys_get_state(const zmk_event_t *eh) {
 
     struct typed_keys_state state = {};
     uint8_t layer = zmk_keymap_highest_layer_active();
-    if (layer != 0) {
+    if (layer != 0 || idle_layer_visible) {
         const char *layer_name = zmk_keymap_layer_name(layer);
         if (layer_name == NULL) {
             if (layer_letter == '\0') {
@@ -121,6 +130,14 @@ static void typed_keys_update_cb(struct typed_keys_state state) {
     SYS_SLIST_FOR_EACH_CONTAINER(&widgets, widget, node) { set_typed_keys(widget, state); }
 }
 
+static void typed_keys_idle_work_handler(struct k_work *work) {
+    ARG_UNUSED(work);
+
+    clear_typed_keys();
+    idle_layer_visible = true;
+    typed_keys_update_cb(typed_keys_get_state(NULL));
+}
+
 ZMK_DISPLAY_WIDGET_LISTENER(widget_typed_keys_status, struct typed_keys_state,
                             typed_keys_update_cb, typed_keys_get_state)
 ZMK_SUBSCRIPTION(widget_typed_keys_status, zmk_keycode_state_changed);
@@ -128,6 +145,8 @@ ZMK_SUBSCRIPTION(widget_typed_keys_status, zmk_layer_state_changed);
 
 int zmk_widget_typed_keys_status_init(struct zmk_widget_typed_keys_status *widget,
                                       lv_obj_t *parent) {
+    k_work_init_delayable(&typed_keys_idle_work, typed_keys_idle_work_handler);
+
     widget->obj = lv_label_create(parent);
     lv_obj_set_width(widget->obj, 126);
     lv_obj_set_style_text_align(widget->obj, LV_TEXT_ALIGN_CENTER, 0);
