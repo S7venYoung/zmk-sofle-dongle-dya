@@ -30,6 +30,14 @@ static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 static char typed_keys[TYPED_KEYS_MAX + 1];
 static size_t typed_length;
 static char layer_letter;
+static uint8_t pressed_modifiers;
+static bool shortcut_key_down;
+
+static void clear_typed_keys(void) {
+    typed_length = 0;
+    typed_keys[0] = '\0';
+    layer_letter = '\0';
+}
 
 static void append_letter(char letter) {
     if (typed_length == TYPED_KEYS_MAX) {
@@ -48,19 +56,33 @@ static struct typed_keys_state typed_keys_get_state(const zmk_event_t *eh) {
     }
 
     const struct zmk_keycode_state_changed *key_ev = as_zmk_keycode_state_changed(eh);
-    if (key_ev != NULL && key_ev->state && key_ev->usage_page == HID_USAGE_KEY) {
+    if (key_ev != NULL && key_ev->usage_page == HID_USAGE_KEY) {
         if (is_mod(key_ev->usage_page, key_ev->keycode)) {
-            /* Start a fresh display sequence for the shortcut being entered. */
-            typed_length = 0;
-            typed_keys[0] = '\0';
-            layer_letter = '\0';
-        } else if (key_ev->keycode >= HID_KEY_A && key_ev->keycode <= HID_KEY_Z) {
+            if (key_ev->state) {
+                /* Start a fresh display sequence for the shortcut being entered. */
+                clear_typed_keys();
+                pressed_modifiers++;
+            } else if (pressed_modifiers > 0) {
+                pressed_modifiers--;
+            }
+        } else if (!key_ev->state && shortcut_key_down) {
+            /* Releasing the shortcut's letter or number completes the action. */
+            clear_typed_keys();
+            shortcut_key_down = false;
+        } else if (key_ev->state && key_ev->keycode >= HID_KEY_A &&
+                   key_ev->keycode <= HID_KEY_Z) {
             char letter = 'A' + (key_ev->keycode - HID_KEY_A);
             append_letter(letter);
+            shortcut_key_down = pressed_modifiers > 0;
             if (zmk_keymap_highest_layer_active() != 0) {
                 layer_letter = letter;
             }
-        } else if (key_ev->keycode == HID_KEY_BACKSPACE && typed_length > 0) {
+        } else if (key_ev->state && pressed_modifiers > 0) {
+            /* Digits and other shortcut keys are not rendered, but their
+             * release must still clear the shortcut display. */
+            shortcut_key_down = true;
+        } else if (key_ev->state && key_ev->keycode == HID_KEY_BACKSPACE &&
+                   typed_length > 0) {
             typed_keys[--typed_length] = '\0';
         }
     }

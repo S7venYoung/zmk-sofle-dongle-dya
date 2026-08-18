@@ -35,9 +35,8 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #endif
 
 #define BUFFER_SIZE LV_CANVAS_BUF_SIZE(5, 8, LV_COLOR_FORMAT_GET_BPP(LV_COLOR_FORMAT_L8), LV_DRAW_BUF_STRIDE_ALIGN)
-#define SPLIT_BATTERY_BAR_MAX_WIDTH 44
+#define SPLIT_BATTERY_BAR_MAX_WIDTH 54
 #define SPLIT_BATTERY_BAR_HEIGHT 4
-#define SPLIT_BATTERY_BAR_INNER_WIDTH (SPLIT_BATTERY_BAR_MAX_WIDTH - 2)
 
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 
@@ -125,15 +124,15 @@ static void set_battery_symbol(uint8_t object_index, struct battery_state state)
 
         lv_obj_set_style_text_font(label, &lv_font_unscii_8, 0);
         lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
-        lv_obj_set_width(label, 52);
+        lv_obj_set_width(label, SPLIT_BATTERY_BAR_MAX_WIDTH);
         lv_obj_set_size(bar_fill,
-                        MAX(1, DIV_ROUND_UP(SPLIT_BATTERY_BAR_INNER_WIDTH * state.level, 100)),
-                        SPLIT_BATTERY_BAR_HEIGHT - 2);
+                        MAX(1, DIV_ROUND_UP(SPLIT_BATTERY_BAR_MAX_WIDTH * state.level, 100)),
+                        SPLIT_BATTERY_BAR_HEIGHT);
         /* Keep the filled side against the outer edge. As the level falls, the
          * hollow section therefore grows from the screen centre outwards. */
         lv_obj_align(bar_fill,
                      object_index == 0 ? LV_ALIGN_LEFT_MID : LV_ALIGN_RIGHT_MID,
-                     object_index == 0 ? 1 : -1, 0);
+                     0, 0);
 
         lv_obj_add_flag(symbol, LV_OBJ_FLAG_HIDDEN);
         lv_obj_clear_flag(label, LV_OBJ_FLAG_HIDDEN);
@@ -176,7 +175,9 @@ void zmk_widget_dongle_battery_status_refresh(struct zmk_widget_dongle_battery_s
     }
 
     if (split_layout) {
-        lv_obj_set_size(widget->obj, 128, 12);
+        /* Extra height keeps the 8 px font inside the parent while the bar
+         * itself remains flush with the physical bottom row. */
+        lv_obj_set_size(widget->obj, 128, 16);
         for (uint8_t i = 0; i < MIN(2, ZMK_SPLIT_BLE_PERIPHERAL_COUNT); i++) {
             struct battery_state state = {
                 .source = i,
@@ -190,11 +191,11 @@ void zmk_widget_dongle_battery_status_refresh(struct zmk_widget_dongle_battery_s
 
             struct battery_object *object = &battery_objects[i];
             if (i == 0) {
-                lv_obj_align(object->label, LV_ALIGN_BOTTOM_MID, -24, -5);
-                lv_obj_align(object->bar_track, LV_ALIGN_BOTTOM_MID, -24, 0);
+                lv_obj_align(object->label, LV_ALIGN_BOTTOM_LEFT, 2, -5);
+                lv_obj_align(object->bar_track, LV_ALIGN_BOTTOM_LEFT, 2, 0);
             } else {
-                lv_obj_align(object->label, LV_ALIGN_BOTTOM_MID, 24, -5);
-                lv_obj_align(object->bar_track, LV_ALIGN_BOTTOM_MID, 24, 0);
+                lv_obj_align(object->label, LV_ALIGN_BOTTOM_RIGHT, -2, -5);
+                lv_obj_align(object->bar_track, LV_ALIGN_BOTTOM_RIGHT, -2, 0);
             }
         }
         return;
@@ -292,6 +293,9 @@ ZMK_SUBSCRIPTION(widget_dongle_battery_status, zmk_usb_conn_state_changed);
 int zmk_widget_dongle_battery_status_init(struct zmk_widget_dongle_battery_status *widget, lv_obj_t *parent) {
     widget->obj = lv_obj_create(parent);
 
+    /* The YADS bars use the physical screen edges, so the container must not
+     * contribute theme padding, borders, or an inset content area. */
+    lv_obj_remove_style_all(widget->obj);
     lv_obj_set_size(widget->obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
 
     for (int i = 0; i < ZMK_SPLIT_BLE_PERIPHERAL_COUNT + SOURCE_OFFSET; i++) {
@@ -313,7 +317,7 @@ int zmk_widget_dongle_battery_status_init(struct zmk_widget_dongle_battery_statu
         lv_obj_remove_style_all(battery_bar_fill);
         lv_obj_set_style_bg_color(battery_bar_fill, lv_color_black(), 0);
         lv_obj_set_style_bg_opa(battery_bar_fill, LV_OPA_COVER, 0);
-        lv_obj_set_size(battery_bar_fill, 1, SPLIT_BATTERY_BAR_HEIGHT - 2);
+        lv_obj_set_size(battery_bar_fill, 1, SPLIT_BATTERY_BAR_HEIGHT);
 
         lv_obj_align(image_canvas, LV_ALIGN_TOP_RIGHT, 0, i * 10);
         lv_obj_align_to(battery_label, image_canvas, LV_ALIGN_OUT_LEFT_MID, 0, 0);
