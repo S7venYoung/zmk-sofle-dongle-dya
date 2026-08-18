@@ -10,6 +10,7 @@
 | --- | --- | --- |
 | `main` | 当前稳定固件，基于旧版 DYA/ZMK 技术栈 | 稳定 |
 | `4.1` | 基于 `main+dya` 和 Zephyr 4.1 的新版适配 | 开发测试中 |
+| `4.1-display-themes` | 基于 `4.1` 的双 OLED 主题与 DYA 即时切换实验 | 开发测试中 |
 | `combo` | 旧技术栈上的 Runtime Combo 兼容实验 | 不建议日常使用 |
 
 日常使用请优先选择 `main`。需要测试新版 Runtime Macro 和接收器屏幕编辑时，选择 `4.1`。
@@ -98,6 +99,7 @@ GitHub Actions 构建完成后，在运行记录的 Artifacts 中下载固件压
 
 | 设置 | 作用 | 范围 |
 | --- | --- | --- |
+| `display_theme` | OLED 主题 | `0`=Classic，`1`=YADS |
 | `key_stats_enabled` | 是否显示按键统计 | 开/关 |
 | `key_stats_x` | 统计模块横坐标 | 0–78 |
 | `key_stats_y` | 统计模块纵坐标 | 0–46 |
@@ -120,6 +122,23 @@ GitHub Actions 构建完成后，在运行记录的 Artifacts 中下载固件压
 通过 DYA 写入以上设置后，OLED 会立即刷新；点击页面顶部的 `Save` 后可在断电重启后保留。OLED 熄屏继续使用 ZMK 原生的 Idle 机制，当前默认无操作 30 秒后熄屏，不作为独立的 DYA 显示设置开放。
 
 屏幕旋转、分辨率、`segment-offset`、反色和颜色深度仍由设备树固定，不提供运行时修改，以避免 OLED 控制器参数错误导致乱码。
+
+### 双主题实验分支
+
+`4.1-display-themes` 在保留当前 Classic 猫咪主题的基础上增加 YADS 信息主题。通过 DYA Studio 将 `display_theme` 写为 `0` 或 `1` 后立即切换，点击页面顶部的 `Save` 后持久保存。
+
+YADS 主题底部的左右副手电量始终显示：正常连接时分别显示 `L/R + 百分比`，尚未收到电量或断开连接时显示 `L X` / `R X`。
+
+YADS 主题布局：
+
+- 左上：实时 WPM
+- 右上：USB/BLE 连接状态
+- 中间：最近输入的英文字母
+- 按住切层键时：中间显示当前层级和该层输入的字母
+- 字母下方：仅在修饰键按下期间显示修饰键图标
+- 左下与右下：左右手键盘电量
+
+YADS 主题仅显示最近 10 个 HID 字母 `A`–`Z`，不会解析中文输入法最终输出的汉字。它同样可能显示密码中键入的字母；在公共环境使用时可切回 Classic 主题。Classic 主题的按键统计、猫动画和原布局保持不变。
 
 ## Device Info
 
@@ -194,6 +213,7 @@ Runtime Macro 和屏幕设置不应修改这些编码器绑定。
 - [cormoran/zmk-feature-runtime-macro](https://github.com/cormoran/zmk-feature-runtime-macro)
 - [cormoran/zmk-feature-custom-settings](https://github.com/cormoran/zmk-feature-custom-settings)
 - [englmaxi/zmk-dongle-display](https://github.com/englmaxi/zmk-dongle-display)
+- [janpfischer/zmk-dongle-screen](https://github.com/janpfischer/zmk-dongle-screen)
 
 ## 联系方式
 

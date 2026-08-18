@@ -9,6 +9,7 @@
 #include <stdint.h>
 
 bool zmk_display_settings_key_stats_enabled(void);
+int32_t zmk_display_settings_theme(void);
 int32_t zmk_display_settings_key_stats_x(void);
 int32_t zmk_display_settings_key_stats_y(void);
 int32_t zmk_display_settings_layer_alignment(void);

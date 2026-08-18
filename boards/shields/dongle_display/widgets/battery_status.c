@@ -54,6 +54,7 @@ static struct battery_state central_state;
 static bool central_state_valid;
 static struct battery_state peripheral_states[MAX(1, ZMK_SPLIT_BLE_PERIPHERAL_COUNT)];
 static bool peripheral_state_valid[MAX(1, ZMK_SPLIT_BLE_PERIPHERAL_COUNT)];
+static bool split_layout;
     
 static lv_color_t battery_image_buffer[ZMK_SPLIT_BLE_PERIPHERAL_COUNT + SOURCE_OFFSET][BUFFER_SIZE];
 
@@ -109,8 +110,24 @@ static void set_battery_symbol(uint8_t object_index, struct battery_state state)
     lv_obj_t *label = battery_objects[object_index].label;
 
     draw_battery(symbol, state.level, state.usb_present);
+
+    if (split_layout && object_index < 2) {
+        const char side = object_index == 0 ? 'L' : 'R';
+        if (state.level > 0) {
+            lv_label_set_text_fmt(label, "%c %u%%", side, state.level);
+        } else {
+            lv_label_set_text_fmt(label, "%c X", side);
+        }
+
+        lv_obj_clear_flag(symbol, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_move_foreground(symbol);
+        lv_obj_clear_flag(label, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_move_foreground(label);
+        return;
+    }
+
     lv_label_set_text_fmt(label, "%4u%% ", state.level);
-    
+
     if (state.level > 0 || state.usb_present) {
         lv_obj_clear_flag(symbol, LV_OBJ_FLAG_HIDDEN);
         lv_obj_move_foreground(symbol);
@@ -123,11 +140,34 @@ static void set_battery_symbol(uint8_t object_index, struct battery_state state)
 }
 
 void zmk_widget_dongle_battery_status_refresh(struct zmk_widget_dongle_battery_status *widget) {
-    ARG_UNUSED(widget);
-
     for (int i = 0; i < ZMK_SPLIT_BLE_PERIPHERAL_COUNT + SOURCE_OFFSET; i++) {
         lv_obj_add_flag(battery_objects[i].symbol, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(battery_objects[i].label, LV_OBJ_FLAG_HIDDEN);
+    }
+
+    if (split_layout) {
+        lv_obj_set_size(widget->obj, 128, 10);
+        for (uint8_t i = 0; i < MIN(2, ZMK_SPLIT_BLE_PERIPHERAL_COUNT); i++) {
+            struct battery_state state = {
+                .source = i,
+                .level = 0,
+                .central = false,
+            };
+            if (peripheral_state_valid[i]) {
+                state = peripheral_states[i];
+            }
+            set_battery_symbol(i, state);
+
+            struct battery_object *object = &battery_objects[i];
+            if (i == 0) {
+                lv_obj_align(object->label, LV_ALIGN_BOTTOM_LEFT, 3, 0);
+                lv_obj_align_to(object->symbol, object->label, LV_ALIGN_OUT_RIGHT_MID, 1, 0);
+            } else {
+                lv_obj_align(object->symbol, LV_ALIGN_BOTTOM_RIGHT, -3, 0);
+                lv_obj_align_to(object->label, object->symbol, LV_ALIGN_OUT_LEFT_MID, -1, 0);
+            }
+        }
+        return;
     }
 
     bool show_central = IS_ENABLED(CONFIG_ZMK_DONGLE_DISPLAY_DONGLE_BATTERY);
@@ -145,6 +185,19 @@ void zmk_widget_dongle_battery_status_refresh(struct zmk_widget_dongle_battery_s
             set_battery_symbol(i + offset, peripheral_states[i]);
         }
     }
+
+    lv_obj_set_size(widget->obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+    for (int i = 0; i < ZMK_SPLIT_BLE_PERIPHERAL_COUNT + SOURCE_OFFSET; i++) {
+        lv_obj_align(battery_objects[i].symbol, LV_ALIGN_TOP_RIGHT, 0, i * 10);
+        lv_obj_align_to(battery_objects[i].label, battery_objects[i].symbol,
+                        LV_ALIGN_OUT_LEFT_MID, 0, 0);
+    }
+}
+
+void zmk_widget_dongle_battery_status_set_split_layout(
+    struct zmk_widget_dongle_battery_status *widget, bool enabled) {
+    split_layout = enabled;
+    zmk_widget_dongle_battery_status_refresh(widget);
 }
 
 void battery_status_update_cb(struct battery_state state) {

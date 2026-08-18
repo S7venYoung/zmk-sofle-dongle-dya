@@ -84,6 +84,7 @@ static struct modifier_symbol *win_modifier_symbols[] = {
 };
 
 static struct modifier_symbol **modifier_symbols;
+static bool active_only_layout;
 
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 
@@ -106,6 +107,14 @@ static void set_modifiers(struct zmk_widget_modifiers *widget, struct modifiers_
     for (int i = 0; i < ZMK_MODIFIER_SYMBOL_COUNT; i++) {
         bool mod_is_active = state.modifiers & modifier_symbols[i]->modifier;
 
+        if (active_only_layout && !mod_is_active) {
+            lv_obj_add_flag(widget->symbols[i], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(widget->selection_lines[i], LV_OBJ_FLAG_HIDDEN);
+        } else {
+            lv_obj_clear_flag(widget->symbols[i], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_clear_flag(widget->selection_lines[i], LV_OBJ_FLAG_HIDDEN);
+        }
+
         if (mod_is_active && !widget->is_active[i]) {
             move_object_y(widget->symbols[i], 1, 0);
             move_object_y(widget->selection_lines[i], SIZE_SYMBOLS + 4, SIZE_SYMBOLS + 2);
@@ -116,6 +125,11 @@ static void set_modifiers(struct zmk_widget_modifiers *widget, struct modifiers_
             widget->is_active[i] = false;
         }
     }
+}
+
+void zmk_widget_modifiers_set_active_only(struct zmk_widget_modifiers *widget, bool active_only) {
+    active_only_layout = active_only;
+    zmk_widget_modifiers_refresh(widget);
 }
 
 void modifiers_update_cb(struct modifiers_state state) {

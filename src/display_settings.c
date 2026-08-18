@@ -43,6 +43,14 @@ ZMK_RPC_CUSTOM_SUBSYSTEM(dongle_display_settings, &dongle_display_settings_meta,
 #endif
 
 ZMK_CUSTOM_SETTING_DEFINE(
+    display_theme, DISPLAY_SETTINGS_SUBSYSTEM, "display_theme",
+    ZMK_CUSTOM_SETTING_VALUE_TYPE_INT32, ZMK_CUSTOM_SETTING_VALUE_INT32(0),
+    ZMK_CUSTOM_SETTING_CONFIDENTIALITY_RPC_PUBLIC,
+    ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE,
+    ZMK_CUSTOM_SETTING_PERMISSION_SECURE,
+    ZMK_CUSTOM_SETTING_RANGE_INT32(0, 1));
+
+ZMK_CUSTOM_SETTING_DEFINE(
     display_key_stats_enabled, DISPLAY_SETTINGS_SUBSYSTEM, "key_stats_enabled",
     ZMK_CUSTOM_SETTING_VALUE_TYPE_BOOL, ZMK_CUSTOM_SETTING_VALUE_BOOL(true),
     ZMK_CUSTOM_SETTING_CONFIDENTIALITY_RPC_PUBLIC,
@@ -141,6 +149,12 @@ ZMK_CUSTOM_SETTING_DEFINE(
 bool zmk_display_settings_key_stats_enabled(void) {
     bool value = true;
     zmk_custom_setting_get_bool(&display_key_stats_enabled, &value);
+    return value;
+}
+
+int32_t zmk_display_settings_theme(void) {
+    int32_t value = 0;
+    zmk_custom_setting_get_int32(&display_theme, &value);
     return value;
 }
 
