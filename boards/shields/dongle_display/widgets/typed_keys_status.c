@@ -17,7 +17,7 @@
 
 #include "typed_keys_status.h"
 
-#define TYPED_KEYS_MAX 10
+#define TYPED_KEYS_MAX 5
 #define HID_KEY_A 0x04
 #define HID_KEY_Z 0x1D
 #define HID_KEY_BACKSPACE 0x2A
@@ -76,9 +76,9 @@ static struct typed_keys_state typed_keys_get_state(const zmk_event_t *eh) {
             snprintf(state.text, sizeof(state.text), "%s %c", layer_name, layer_letter);
         }
     } else if (typed_length == 0) {
-        snprintf(state.text, sizeof(state.text), "_");
+        state.text[0] = '\0';
     } else {
-        snprintf(state.text, sizeof(state.text), "%s_", typed_keys);
+        snprintf(state.text, sizeof(state.text), "%s", typed_keys);
     }
 
     return state;

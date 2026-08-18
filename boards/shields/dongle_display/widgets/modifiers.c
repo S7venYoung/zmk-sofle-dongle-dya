@@ -104,6 +104,23 @@ static void move_object_y(void *obj, int32_t from, int32_t to) {
 }
 
 static void set_modifiers(struct zmk_widget_modifiers *widget, struct modifiers_state state) {
+    int active_count = 0;
+    if (active_only_layout) {
+        for (int i = 0; i < ZMK_MODIFIER_SYMBOL_COUNT; i++) {
+            if (state.modifiers & modifier_symbols[i]->modifier) {
+                active_count++;
+            }
+        }
+
+        lv_obj_set_size(widget->obj,
+                        active_count > 0 ? active_count * (SIZE_SYMBOLS + 1) + 1 : 1,
+                        SIZE_SYMBOLS + 3);
+    } else {
+        lv_obj_set_size(widget->obj, ZMK_MODIFIER_SYMBOL_COUNT * (SIZE_SYMBOLS + 1) + 1,
+                        SIZE_SYMBOLS + 3);
+    }
+
+    int active_index = 0;
     for (int i = 0; i < ZMK_MODIFIER_SYMBOL_COUNT; i++) {
         bool mod_is_active = state.modifiers & modifier_symbols[i]->modifier;
 
@@ -113,6 +130,12 @@ static void set_modifiers(struct zmk_widget_modifiers *widget, struct modifiers_
         } else {
             lv_obj_clear_flag(widget->symbols[i], LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(widget->selection_lines[i], LV_OBJ_FLAG_HIDDEN);
+
+            int display_index = active_only_layout ? active_index++ : i;
+            lv_obj_align(widget->symbols[i], LV_ALIGN_TOP_LEFT,
+                         1 + (SIZE_SYMBOLS + 1) * display_index, 1);
+            lv_obj_align_to(widget->selection_lines[i], widget->symbols[i],
+                            LV_ALIGN_OUT_BOTTOM_LEFT, 0, 3);
         }
 
         if (mod_is_active && !widget->is_active[i]) {
@@ -124,6 +147,10 @@ static void set_modifiers(struct zmk_widget_modifiers *widget, struct modifiers_
             move_object_y(widget->selection_lines[i], SIZE_SYMBOLS + 2, SIZE_SYMBOLS + 4);
             widget->is_active[i] = false;
         }
+    }
+
+    if (active_only_layout) {
+        lv_obj_align(widget->obj, LV_ALIGN_CENTER, 0, 8);
     }
 }
 
