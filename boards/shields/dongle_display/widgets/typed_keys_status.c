@@ -49,7 +49,12 @@ static struct typed_keys_state typed_keys_get_state(const zmk_event_t *eh) {
 
     const struct zmk_keycode_state_changed *key_ev = as_zmk_keycode_state_changed(eh);
     if (key_ev != NULL && key_ev->state && key_ev->usage_page == HID_USAGE_KEY) {
-        if (key_ev->keycode >= HID_KEY_A && key_ev->keycode <= HID_KEY_Z) {
+        if (is_mod(key_ev->usage_page, key_ev->keycode)) {
+            /* Start a fresh display sequence for the shortcut being entered. */
+            typed_length = 0;
+            typed_keys[0] = '\0';
+            layer_letter = '\0';
+        } else if (key_ev->keycode >= HID_KEY_A && key_ev->keycode <= HID_KEY_Z) {
             char letter = 'A' + (key_ev->keycode - HID_KEY_A);
             append_letter(letter);
             if (zmk_keymap_highest_layer_active() != 0) {

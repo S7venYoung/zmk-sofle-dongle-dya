@@ -48,7 +48,8 @@ enum output_symbol {
     output_symbol_bt,
     output_symbol_bt_number,
     output_symbol_bt_status,
-    output_symbol_selection_line
+    output_symbol_selection_line,
+    output_symbol_compact_label
 };
 
 enum selection_line_state {
@@ -88,6 +89,24 @@ static struct output_status_state get_state(const zmk_event_t *_eh) {
     return st;
 }
 
+static void set_compact_text(lv_obj_t *label, struct output_status_state state) {
+    enum zmk_transport transport = state.selected_endpoint.transport;
+    bool connected = transport != ZMK_TRANSPORT_NONE;
+
+    if (!connected) {
+        transport = state.preferred_transport;
+    }
+
+    if (transport == ZMK_TRANSPORT_USB) {
+        lv_label_set_text(label, state.usb_is_hid_ready && connected ? "USB" : "USB-");
+    } else if (transport == ZMK_TRANSPORT_BLE) {
+        lv_label_set_text_fmt(label, connected ? "BLE%d" : "BLE%d-",
+                              state.active_profile_index + 1);
+    } else {
+        lv_label_set_text(label, "---");
+    }
+}
+
 static void anim_x_cb(void * var, int32_t v) {
     lv_obj_set_x(var, v);
 }
@@ -125,6 +144,9 @@ static void set_status_symbol(lv_obj_t *widget, struct output_status_state state
     lv_obj_t *bt_number = lv_obj_get_child(widget, output_symbol_bt_number);
     lv_obj_t *bt_status = lv_obj_get_child(widget, output_symbol_bt_status);
     lv_obj_t *selection_line = lv_obj_get_child(widget, output_symbol_selection_line);
+    lv_obj_t *compact_label = lv_obj_get_child(widget, output_symbol_compact_label);
+
+    set_compact_text(compact_label, state);
 
     enum zmk_transport transport = state.selected_endpoint.transport;
     bool connected = transport != ZMK_TRANSPORT_NONE;
@@ -226,6 +248,11 @@ int zmk_widget_output_status_init(struct zmk_widget_output_status *widget, lv_ob
     lv_line_set_points(selection_line, selection_line_points, 2);
     lv_obj_add_style(selection_line, &style_line, 0);
     lv_obj_align_to(selection_line, usb, LV_ALIGN_OUT_TOP_LEFT, 3, -2);
+
+    lv_obj_t *compact_label = lv_label_create(widget->obj);
+    lv_obj_set_style_text_font(compact_label, &lv_font_unscii_8, 0);
+    lv_obj_set_style_text_align(compact_label, LV_TEXT_ALIGN_RIGHT, 0);
+    lv_obj_add_flag(compact_label, LV_OBJ_FLAG_HIDDEN);
  
     sys_slist_append(&widgets, &widget->node);
 
@@ -235,4 +262,25 @@ int zmk_widget_output_status_init(struct zmk_widget_output_status *widget, lv_ob
 
 lv_obj_t *zmk_widget_output_status_obj(struct zmk_widget_output_status *widget) {
     return widget->obj;
+}
+
+void zmk_widget_output_status_set_compact(struct zmk_widget_output_status *widget, bool compact) {
+    for (int i = output_symbol_usb; i <= output_symbol_selection_line; i++) {
+        lv_obj_t *child = lv_obj_get_child(widget->obj, i);
+        if (compact) {
+            lv_obj_add_flag(child, LV_OBJ_FLAG_HIDDEN);
+        } else {
+            lv_obj_clear_flag(child, LV_OBJ_FLAG_HIDDEN);
+        }
+    }
+
+    lv_obj_t *compact_label = lv_obj_get_child(widget->obj, output_symbol_compact_label);
+    if (compact) {
+        lv_obj_clear_flag(compact_label, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_align(compact_label, LV_ALIGN_TOP_RIGHT, 0, 0);
+    } else {
+        lv_obj_add_flag(compact_label, LV_OBJ_FLAG_HIDDEN);
+    }
+
+    set_status_symbol(widget->obj, get_state(NULL));
 }

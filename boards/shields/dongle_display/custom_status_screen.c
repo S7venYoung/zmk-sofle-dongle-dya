@@ -70,6 +70,7 @@ static void apply_runtime_display_settings(struct k_work *work) {
 
     bool yads_theme = zmk_display_settings_theme() == 1;
 
+    zmk_widget_output_status_set_compact(&output_status_widget, yads_theme);
     lv_obj_align(zmk_widget_output_status_obj(&output_status_widget),
                  yads_theme ? LV_ALIGN_TOP_RIGHT : LV_ALIGN_TOP_LEFT, 0, 0);
 

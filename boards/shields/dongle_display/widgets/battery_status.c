@@ -36,7 +36,8 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #define BUFFER_SIZE LV_CANVAS_BUF_SIZE(5, 8, LV_COLOR_FORMAT_GET_BPP(LV_COLOR_FORMAT_L8), LV_DRAW_BUF_STRIDE_ALIGN)
 #define SPLIT_BATTERY_BAR_MAX_WIDTH 44
-#define SPLIT_BATTERY_BAR_HEIGHT 2
+#define SPLIT_BATTERY_BAR_HEIGHT 4
+#define SPLIT_BATTERY_BAR_INNER_WIDTH (SPLIT_BATTERY_BAR_MAX_WIDTH - 2)
 
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 
@@ -50,7 +51,8 @@ struct battery_state {
 struct battery_object {
     lv_obj_t *symbol;
     lv_obj_t *label;
-    lv_obj_t *bar;
+    lv_obj_t *bar_track;
+    lv_obj_t *bar_fill;
 } battery_objects[ZMK_SPLIT_BLE_PERIPHERAL_COUNT + SOURCE_OFFSET];
 
 static struct battery_state central_state;
@@ -111,7 +113,8 @@ static void set_battery_symbol(uint8_t object_index, struct battery_state state)
     LOG_DBG("source: %d, level: %d, usb: %d", object_index, state.level, state.usb_present);
     lv_obj_t *symbol = battery_objects[object_index].symbol;
     lv_obj_t *label = battery_objects[object_index].label;
-    lv_obj_t *bar = battery_objects[object_index].bar;
+    lv_obj_t *bar_track = battery_objects[object_index].bar_track;
+    lv_obj_t *bar_fill = battery_objects[object_index].bar_fill;
 
     if (split_layout && object_index < 2) {
         if (state.level > 0) {
@@ -123,19 +126,31 @@ static void set_battery_symbol(uint8_t object_index, struct battery_state state)
         lv_obj_set_style_text_font(label, &lv_font_unscii_8, 0);
         lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
         lv_obj_set_width(label, 52);
-        lv_obj_set_size(bar,
-                        MAX(1, DIV_ROUND_UP(SPLIT_BATTERY_BAR_MAX_WIDTH * state.level, 100)),
-                        SPLIT_BATTERY_BAR_HEIGHT);
+        lv_obj_set_size(bar_fill,
+                        MAX(1, DIV_ROUND_UP(SPLIT_BATTERY_BAR_INNER_WIDTH * state.level, 100)),
+                        SPLIT_BATTERY_BAR_HEIGHT - 2);
+        /* Keep the filled side against the outer edge. As the level falls, the
+         * hollow section therefore grows from the screen centre outwards. */
+        lv_obj_align(bar_fill,
+                     object_index == 0 ? LV_ALIGN_LEFT_MID : LV_ALIGN_RIGHT_MID,
+                     object_index == 0 ? 1 : -1, 0);
 
         lv_obj_add_flag(symbol, LV_OBJ_FLAG_HIDDEN);
         lv_obj_clear_flag(label, LV_OBJ_FLAG_HIDDEN);
         lv_obj_move_foreground(label);
-        lv_obj_clear_flag(bar, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_move_foreground(bar);
+        lv_obj_clear_flag(bar_track, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_move_foreground(bar_track);
+        if (state.level > 0) {
+            lv_obj_clear_flag(bar_fill, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_move_foreground(bar_fill);
+        } else {
+            lv_obj_add_flag(bar_fill, LV_OBJ_FLAG_HIDDEN);
+        }
         return;
     }
 
-    lv_obj_add_flag(bar, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(bar_track, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(bar_fill, LV_OBJ_FLAG_HIDDEN);
     lv_obj_set_width(label, LV_SIZE_CONTENT);
     lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_LEFT, 0);
     draw_battery(symbol, state.level, state.usb_present);
@@ -156,7 +171,8 @@ void zmk_widget_dongle_battery_status_refresh(struct zmk_widget_dongle_battery_s
     for (int i = 0; i < ZMK_SPLIT_BLE_PERIPHERAL_COUNT + SOURCE_OFFSET; i++) {
         lv_obj_add_flag(battery_objects[i].symbol, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(battery_objects[i].label, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(battery_objects[i].bar, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(battery_objects[i].bar_track, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(battery_objects[i].bar_fill, LV_OBJ_FLAG_HIDDEN);
     }
 
     if (split_layout) {
@@ -174,11 +190,11 @@ void zmk_widget_dongle_battery_status_refresh(struct zmk_widget_dongle_battery_s
 
             struct battery_object *object = &battery_objects[i];
             if (i == 0) {
-                lv_obj_align(object->label, LV_ALIGN_BOTTOM_LEFT, 2, -3);
-                lv_obj_align(object->bar, LV_ALIGN_BOTTOM_LEFT, 6, 0);
+                lv_obj_align(object->label, LV_ALIGN_BOTTOM_MID, -24, -5);
+                lv_obj_align(object->bar_track, LV_ALIGN_BOTTOM_MID, -24, 0);
             } else {
-                lv_obj_align(object->label, LV_ALIGN_BOTTOM_RIGHT, -2, -3);
-                lv_obj_align(object->bar, LV_ALIGN_BOTTOM_RIGHT, -6, 0);
+                lv_obj_align(object->label, LV_ALIGN_BOTTOM_MID, 24, -5);
+                lv_obj_align(object->bar_track, LV_ALIGN_BOTTOM_MID, 24, 0);
             }
         }
         return;
@@ -281,26 +297,37 @@ int zmk_widget_dongle_battery_status_init(struct zmk_widget_dongle_battery_statu
     for (int i = 0; i < ZMK_SPLIT_BLE_PERIPHERAL_COUNT + SOURCE_OFFSET; i++) {
         lv_obj_t *image_canvas = lv_canvas_create(widget->obj);
         lv_obj_t *battery_label = lv_label_create(widget->obj);
-        lv_obj_t *battery_bar = lv_obj_create(widget->obj);
+        lv_obj_t *battery_bar_track = lv_obj_create(widget->obj);
+        lv_obj_t *battery_bar_fill = lv_obj_create(battery_bar_track);
 
         lv_canvas_set_buffer(image_canvas, battery_image_buffer[i], 5, 8, LV_COLOR_FORMAT_L8);
 
-        lv_obj_remove_style_all(battery_bar);
-        lv_obj_set_style_bg_color(battery_bar, lv_color_black(), 0);
-        lv_obj_set_style_bg_opa(battery_bar, LV_OPA_COVER, 0);
-        lv_obj_set_size(battery_bar, 1, SPLIT_BATTERY_BAR_HEIGHT);
+        lv_obj_remove_style_all(battery_bar_track);
+        lv_obj_set_style_bg_opa(battery_bar_track, LV_OPA_TRANSP, 0);
+        lv_obj_set_style_border_color(battery_bar_track, lv_color_black(), 0);
+        lv_obj_set_style_border_width(battery_bar_track, 1, 0);
+        lv_obj_set_style_radius(battery_bar_track, 0, 0);
+        lv_obj_set_size(battery_bar_track, SPLIT_BATTERY_BAR_MAX_WIDTH,
+                        SPLIT_BATTERY_BAR_HEIGHT);
+
+        lv_obj_remove_style_all(battery_bar_fill);
+        lv_obj_set_style_bg_color(battery_bar_fill, lv_color_black(), 0);
+        lv_obj_set_style_bg_opa(battery_bar_fill, LV_OPA_COVER, 0);
+        lv_obj_set_size(battery_bar_fill, 1, SPLIT_BATTERY_BAR_HEIGHT - 2);
 
         lv_obj_align(image_canvas, LV_ALIGN_TOP_RIGHT, 0, i * 10);
         lv_obj_align_to(battery_label, image_canvas, LV_ALIGN_OUT_LEFT_MID, 0, 0);
 
         lv_obj_add_flag(image_canvas, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(battery_label, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(battery_bar, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(battery_bar_track, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(battery_bar_fill, LV_OBJ_FLAG_HIDDEN);
         
         battery_objects[i] = (struct battery_object){
             .symbol = image_canvas,
             .label = battery_label,
-            .bar = battery_bar,
+            .bar_track = battery_bar_track,
+            .bar_fill = battery_bar_fill,
         };
     }
 
