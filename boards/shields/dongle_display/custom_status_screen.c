@@ -73,6 +73,7 @@ static void apply_runtime_display_settings(struct k_work *work) {
     bool yads_theme = theme == 1;
     bool dashboard_theme = theme == 2;
 
+    zmk_widget_output_status_set_dashboard(&output_status_widget, dashboard_theme);
     zmk_widget_output_status_set_compact(&output_status_widget, yads_theme || dashboard_theme);
     lv_obj_align(zmk_widget_output_status_obj(&output_status_widget),
                  dashboard_theme ? LV_ALIGN_BOTTOM_MID :
@@ -90,6 +91,8 @@ static void apply_runtime_display_settings(struct k_work *work) {
     }
 
 #if IS_ENABLED(CONFIG_ZMK_DONGLE_DISPLAY_WPM)
+    zmk_widget_wpm_status_set_dashboard(&wpm_status_widget, dashboard_theme);
+    zmk_widget_wpm_status_set_dashboard(&wpm_peak_status_widget, dashboard_theme);
     set_widget_visible(zmk_widget_wpm_status_obj(&wpm_status_widget),
                        yads_theme || dashboard_theme || zmk_display_settings_wpm_enabled());
     if (yads_theme) {

@@ -13,6 +13,7 @@ struct zmk_widget_wpm_status
 {
     sys_snode_t node;
     lv_obj_t *obj;
+    lv_obj_t *speedometer;
     lv_obj_t *wpm_label;
     bool peak_mode;
     int last_value;
@@ -22,3 +23,4 @@ int zmk_widget_wpm_status_init(struct zmk_widget_wpm_status *widget, lv_obj_t *p
 lv_obj_t *zmk_widget_wpm_status_obj(struct zmk_widget_wpm_status *widget);
 void zmk_widget_wpm_status_refresh(struct zmk_widget_wpm_status *widget);
 void zmk_widget_wpm_status_set_peak(struct zmk_widget_wpm_status *widget, bool peak);
+void zmk_widget_wpm_status_set_dashboard(struct zmk_widget_wpm_status *widget, bool enabled);

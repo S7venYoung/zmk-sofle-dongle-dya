@@ -85,6 +85,11 @@ void zmk_widget_key_stats_status_set_dashboard(struct zmk_widget_key_stats_statu
         lv_obj_set_style_text_font(widget->total_value_label, &lv_font_unscii_8, 0);
         lv_obj_set_width(widget->total_value_label, 20);
         lv_obj_set_style_text_align(widget->total_value_label, LV_TEXT_ALIGN_RIGHT, 0);
+    } else {
+        lv_obj_set_size(widget->obj, 50, 18);
+        lv_obj_set_style_text_font(widget->total_label, LV_FONT_DEFAULT, 0);
+        lv_obj_set_style_text_font(widget->total_value_label, LV_FONT_DEFAULT, 0);
+        lv_obj_set_width(widget->total_value_label, 38);
     }
     set_key_stats(widget, get_state(NULL));
 }

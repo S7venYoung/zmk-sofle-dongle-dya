@@ -101,21 +101,27 @@ void zmk_widget_wpm_status_set_peak(struct zmk_widget_wpm_status *widget, bool p
     zmk_widget_wpm_status_refresh(widget);
 }
 
+void zmk_widget_wpm_status_set_dashboard(struct zmk_widget_wpm_status *widget, bool enabled)
+{
+    lv_obj_set_size(widget->obj, enabled ? 52 : LV_SIZE_CONTENT,
+                    enabled ? 32 : LV_SIZE_CONTENT);
+    lv_img_set_zoom(widget->speedometer, enabled ? 220 : LV_IMG_ZOOM_NONE);
+    lv_obj_set_style_text_font(widget->wpm_label, enabled ? &lv_font_unscii_16 : LV_FONT_DEFAULT, 0);
+}
+
 int zmk_widget_wpm_status_init(struct zmk_widget_wpm_status *widget, lv_obj_t *parent)
 {
     widget->obj = lv_obj_create(parent);
     widget->peak_mode = false;
     widget->last_value = -1;
-    lv_obj_set_size(widget->obj, 52, 32);
+    lv_obj_set_size(widget->obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
 
-    lv_obj_t *speedometer = lv_img_create(widget->obj);
-    lv_obj_align(speedometer, LV_ALIGN_TOP_LEFT, 0, 0);
-    lv_img_set_src(speedometer, &sym_speedometer);
-    lv_img_set_zoom(speedometer, 220);
+    widget->speedometer = lv_img_create(widget->obj);
+    lv_obj_align(widget->speedometer, LV_ALIGN_TOP_LEFT, 0, 0);
+    lv_img_set_src(widget->speedometer, &sym_speedometer);
 
     widget->wpm_label = lv_label_create(widget->obj);
-    lv_obj_set_style_text_font(widget->wpm_label, &lv_font_unscii_16, 0);
-    lv_obj_align_to(widget->wpm_label, speedometer, LV_ALIGN_OUT_RIGHT_MID, 3, 1);
+    lv_obj_align_to(widget->wpm_label, widget->speedometer, LV_ALIGN_OUT_RIGHT_MID, 2, 1);
 
     sys_slist_append(&widgets, &widget->node);
 
