@@ -279,7 +279,7 @@ void zmk_widget_output_status_set_compact(struct zmk_widget_output_status *widge
     if (compact) {
         lv_obj_clear_flag(compact_label, LV_OBJ_FLAG_HIDDEN);
         if (dashboard_mode) {
-            lv_obj_set_size(widget->obj, 30, 9);
+            lv_obj_set_size(widget->obj, 24, 8);
         } else {
             lv_obj_set_size(widget->obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
         }

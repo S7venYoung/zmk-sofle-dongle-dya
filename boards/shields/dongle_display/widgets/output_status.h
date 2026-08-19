@@ -17,4 +17,3 @@ struct zmk_widget_output_status {
 int zmk_widget_output_status_init(struct zmk_widget_output_status *widget, lv_obj_t *parent);
 lv_obj_t *zmk_widget_output_status_obj(struct zmk_widget_output_status *widget);
 void zmk_widget_output_status_set_compact(struct zmk_widget_output_status *widget, bool compact);
-void zmk_widget_output_status_set_dashboard(struct zmk_widget_output_status *widget, bool enabled);

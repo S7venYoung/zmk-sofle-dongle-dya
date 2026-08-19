@@ -15,6 +15,8 @@ struct zmk_widget_wpm_status
     lv_obj_t *obj;
     lv_obj_t *speedometer;
     lv_obj_t *wpm_label;
+    lv_obj_t *needle;
+    lv_point_precise_t needle_points[2];
     bool peak_mode;
     int last_value;
 };
