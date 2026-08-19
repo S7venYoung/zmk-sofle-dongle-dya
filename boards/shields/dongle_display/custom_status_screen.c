@@ -98,7 +98,7 @@ static void apply_runtime_display_settings(struct k_work *work) {
     if (yads_theme) {
         lv_obj_align(zmk_widget_wpm_status_obj(&wpm_status_widget), LV_ALIGN_TOP_LEFT, 0, 0);
     } else if (dashboard_theme) {
-        lv_obj_align(zmk_widget_wpm_status_obj(&wpm_status_widget), LV_ALIGN_LEFT_MID, 18, -6);
+        lv_obj_align(zmk_widget_wpm_status_obj(&wpm_status_widget), LV_ALIGN_LEFT_MID, 12, -7);
     } else {
         lv_obj_align_to(zmk_widget_wpm_status_obj(&wpm_status_widget),
                         zmk_widget_output_status_obj(&output_status_widget),
@@ -118,7 +118,7 @@ static void apply_runtime_display_settings(struct k_work *work) {
                        (dashboard_theme || (!yads_theme && zmk_display_settings_key_stats_enabled())));
     zmk_widget_key_stats_status_set_dashboard(&key_stats_status_widget, dashboard_theme);
     lv_obj_align(zmk_widget_key_stats_status_obj(&key_stats_status_widget), LV_ALIGN_TOP_LEFT,
-                 dashboard_theme ? 74 : MAX(0, zmk_display_settings_key_stats_x() - 4),
+                 dashboard_theme ? 88 : MAX(0, zmk_display_settings_key_stats_x() - 4),
                  dashboard_theme ? 53 : zmk_display_settings_key_stats_y());
 #endif
 
@@ -150,7 +150,7 @@ static void apply_runtime_display_settings(struct k_work *work) {
     zmk_widget_layer_status_refresh(&layer_status_widget);
 #if IS_ENABLED(CONFIG_ZMK_DONGLE_DISPLAY_BONGO_CAT)
     if (dashboard_theme) {
-        lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget), LV_ALIGN_CENTER, 0, -2);
+        lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget), LV_ALIGN_CENTER, 0, -9);
     } else if (bongo_cat_enabled) {
         lv_obj_align_to(zmk_widget_layer_status_obj(&layer_status_widget),
                         zmk_widget_bongo_cat_obj(&bongo_cat_widget), LV_ALIGN_BOTTOM_RIGHT, 0, 5);
