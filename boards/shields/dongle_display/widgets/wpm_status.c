@@ -20,7 +20,27 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 LV_IMG_DECLARE(sym_speedometer);
 
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
+
+#define PEAK_WPM_HOLD_MS 3000
+
 static int peak_wpm;
+static int64_t peak_wpm_updated_at;
+
+static int update_peak_wpm(int current)
+{
+    int64_t now = k_uptime_get();
+
+    if (current >= peak_wpm) {
+        peak_wpm = current;
+        peak_wpm_updated_at = now;
+    } else if (now - peak_wpm_updated_at >= PEAK_WPM_HOLD_MS) {
+        /* Keep a burst peak briefly, then let the gauge follow the slower rate. */
+        peak_wpm = current;
+        peak_wpm_updated_at = now;
+    }
+
+    return peak_wpm;
+}
 struct wpm_status_state
 {
     int wpm;
@@ -34,12 +54,11 @@ static struct wpm_status_state get_state(const zmk_event_t *_eh)
     uint8_t index = zmk_keymap_highest_layer_active();
 
     int current = ev ? ev->state : zmk_wpm_get_state();
-    if (current > peak_wpm) {
-        peak_wpm = current;
-    }
+    int peak = update_peak_wpm(current);
+
     return (struct wpm_status_state){
         .wpm = current,
-        .peak = peak_wpm,
+        .peak = peak,
         .layer = zmk_keymap_layer_name(index)
     };
 }
@@ -95,12 +114,11 @@ void zmk_widget_wpm_status_refresh(struct zmk_widget_wpm_status *widget)
 {
     widget->last_value = -1;
     int current = zmk_wpm_get_state();
-    if (current > peak_wpm) {
-        peak_wpm = current;
-    }
+    int peak = update_peak_wpm(current);
+
     set_wpm(widget, (struct wpm_status_state) {
         .wpm = current,
-        .peak = peak_wpm,
+        .peak = peak,
         .layer = zmk_keymap_layer_name(zmk_keymap_highest_layer_active()),
     });
 }
