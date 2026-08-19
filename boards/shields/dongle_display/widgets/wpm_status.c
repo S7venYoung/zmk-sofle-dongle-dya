@@ -68,8 +68,8 @@ static void set_wpm(struct zmk_widget_wpm_status *widget, struct wpm_status_stat
 
     if (widget->needle != NULL) {
         int level = CLAMP(value, 0, 120);
-        static const int x[] = {3, 5, 16, 27, 29};
-        static const int y[] = {24, 12, 5, 12, 24};
+        static const int x[] = {4, 7, 21, 35, 38};
+        static const int y[] = {36, 18, 7, 18, 36};
         int segment = MIN(level / 30, 3);
         int rem = level % 30;
         widget->needle_points[1].x = x[segment] + (x[segment + 1] - x[segment]) * rem / 30;
@@ -142,8 +142,8 @@ int zmk_widget_wpm_status_init(struct zmk_widget_wpm_status *widget, lv_obj_t *p
     lv_obj_align_to(widget->wpm_label, widget->speedometer, LV_ALIGN_OUT_RIGHT_MID, 2, 1);
 
     widget->needle = lv_line_create(widget->obj);
-    widget->needle_points[0] = (lv_point_precise_t){16, 21};
-    widget->needle_points[1] = (lv_point_precise_t){16, 5};
+    widget->needle_points[0] = (lv_point_precise_t){21, 36};
+    widget->needle_points[1] = (lv_point_precise_t){21, 7};
     lv_line_set_points(widget->needle, widget->needle_points, 2);
     lv_obj_set_style_line_width(widget->needle, 1, 0);
     lv_obj_add_flag(widget->needle, LV_OBJ_FLAG_HIDDEN);
