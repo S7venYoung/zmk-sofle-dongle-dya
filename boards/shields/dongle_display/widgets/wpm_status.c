@@ -118,7 +118,15 @@ void zmk_widget_wpm_status_set_dashboard(struct zmk_widget_wpm_status *widget, b
     lv_obj_set_size(widget->obj, enabled ? 44 : LV_SIZE_CONTENT,
                     enabled ? 42 : LV_SIZE_CONTENT);
     lv_img_set_zoom(widget->speedometer, enabled ? 300 : LV_ZOOM_NONE);
-    lv_obj_clear_flag(widget->speedometer, LV_OBJ_FLAG_HIDDEN);
+    if (enabled) {
+        /* The bitmap's foreground index is black; recolor it for the black OLED background. */
+        lv_obj_set_style_img_recolor(widget->speedometer, lv_color_white(), 0);
+        lv_obj_set_style_img_recolor_opa(widget->speedometer, LV_OPA_COVER, 0);
+        lv_obj_clear_flag(widget->speedometer, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_set_style_img_recolor_opa(widget->speedometer, LV_OPA_TRANSP, 0);
+        lv_obj_clear_flag(widget->speedometer, LV_OBJ_FLAG_HIDDEN);
+    }
     lv_obj_set_style_text_font(widget->wpm_label, enabled ? &lv_font_unscii_16 : LV_FONT_DEFAULT, 0);
     if (enabled) {
         lv_obj_add_flag(widget->wpm_label, LV_OBJ_FLAG_HIDDEN);
