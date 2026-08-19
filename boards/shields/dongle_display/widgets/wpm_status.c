@@ -106,7 +106,7 @@ int zmk_widget_wpm_status_init(struct zmk_widget_wpm_status *widget, lv_obj_t *p
     widget->obj = lv_obj_create(parent);
     widget->peak_mode = false;
     widget->last_value = -1;
-    lv_obj_set_size(widget->obj, 36, 30);
+    lv_obj_set_size(widget->obj, 52, 32);
 
     lv_obj_t *speedometer = lv_img_create(widget->obj);
     lv_obj_align(speedometer, LV_ALIGN_TOP_LEFT, 0, 0);
