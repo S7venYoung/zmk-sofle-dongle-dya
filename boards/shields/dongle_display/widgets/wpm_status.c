@@ -29,8 +29,19 @@ static int64_t peak_wpm_updated_at;
 /* A native LVGL polyline is used for the enlarged dashboard gauge. Scaling
  * the 14x14 I1 speedometer bitmap is unreliable on the monochrome display. */
 static const lv_point_precise_t dashboard_gauge_points[] = {
-    {3, 36}, {4, 27}, {7, 19}, {13, 11}, {21, 7},
-    {29, 11}, {35, 19}, {38, 27}, {39, 36},
+    {3, 36}, {3, 32}, {4, 27}, {6, 22}, {9, 17}, {13, 13}, {17, 10}, {21, 9},
+    {25, 10}, {29, 13}, {33, 17}, {36, 22}, {38, 27}, {39, 32}, {39, 36},
+};
+
+/* Seven inward-facing ticks follow the same semicircle as the YADS gauge. */
+static const lv_point_precise_t dashboard_tick_points[7][2] = {
+    {{4, 31}, {8, 31}},
+    {{7, 22}, {11, 24}},
+    {{13, 14}, {16, 18}},
+    {{21, 9}, {21, 14}},
+    {{29, 14}, {26, 18}},
+    {{35, 22}, {31, 24}},
+    {{38, 31}, {34, 31}},
 };
 
 static int update_peak_wpm(int current)
@@ -144,11 +155,17 @@ void zmk_widget_wpm_status_set_dashboard(struct zmk_widget_wpm_status *widget, b
     if (enabled) {
         lv_obj_add_flag(widget->speedometer, LV_OBJ_FLAG_HIDDEN);
         lv_obj_clear_flag(widget->gauge_arc, LV_OBJ_FLAG_HIDDEN);
+        for (size_t i = 0; i < ARRAY_SIZE(widget->gauge_ticks); i++) {
+            lv_obj_clear_flag(widget->gauge_ticks[i], LV_OBJ_FLAG_HIDDEN);
+        }
         lv_obj_add_flag(widget->wpm_label, LV_OBJ_FLAG_HIDDEN);
         lv_obj_clear_flag(widget->needle, LV_OBJ_FLAG_HIDDEN);
     } else {
         lv_obj_clear_flag(widget->speedometer, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(widget->gauge_arc, LV_OBJ_FLAG_HIDDEN);
+        for (size_t i = 0; i < ARRAY_SIZE(widget->gauge_ticks); i++) {
+            lv_obj_add_flag(widget->gauge_ticks[i], LV_OBJ_FLAG_HIDDEN);
+        }
         lv_obj_clear_flag(widget->wpm_label, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(widget->needle, LV_OBJ_FLAG_HIDDEN);
     }
@@ -171,6 +188,14 @@ int zmk_widget_wpm_status_init(struct zmk_widget_wpm_status *widget, lv_obj_t *p
     lv_obj_set_style_line_width(widget->gauge_arc, 1, 0);
     lv_obj_set_style_line_rounded(widget->gauge_arc, true, 0);
     lv_obj_add_flag(widget->gauge_arc, LV_OBJ_FLAG_HIDDEN);
+
+    for (size_t i = 0; i < ARRAY_SIZE(widget->gauge_ticks); i++) {
+        widget->gauge_ticks[i] = lv_line_create(widget->obj);
+        lv_line_set_points(widget->gauge_ticks[i], dashboard_tick_points[i], 2);
+        lv_obj_set_style_line_width(widget->gauge_ticks[i], 1, 0);
+        lv_obj_set_style_line_rounded(widget->gauge_ticks[i], true, 0);
+        lv_obj_add_flag(widget->gauge_ticks[i], LV_OBJ_FLAG_HIDDEN);
+    }
 
     widget->wpm_label = lv_label_create(widget->obj);
     lv_obj_align_to(widget->wpm_label, widget->speedometer, LV_ALIGN_OUT_RIGHT_MID, 2, 1);
