@@ -19,3 +19,5 @@ lv_obj_t *zmk_widget_dongle_battery_status_obj(struct zmk_widget_dongle_battery_
 void zmk_widget_dongle_battery_status_refresh(struct zmk_widget_dongle_battery_status *widget);
 void zmk_widget_dongle_battery_status_set_split_layout(
     struct zmk_widget_dongle_battery_status *widget, bool split_layout);
+void zmk_widget_dongle_battery_status_set_dashboard_layout(
+    struct zmk_widget_dongle_battery_status *widget, bool enabled);

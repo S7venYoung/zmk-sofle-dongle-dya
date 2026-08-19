@@ -43,6 +43,7 @@ static struct zmk_widget_bongo_cat bongo_cat_widget;
 #endif
 
 static struct zmk_widget_wpm_status wpm_status_widget;
+static struct zmk_widget_wpm_status wpm_peak_status_widget;
 static struct zmk_widget_typed_keys_status typed_keys_status_widget;
 
 #if IS_ENABLED(CONFIG_ZMK_KEY_STATS)
@@ -68,11 +69,15 @@ static void apply_runtime_display_settings(struct k_work *work) {
         return;
     }
 
-    bool yads_theme = zmk_display_settings_theme() == 1;
+    int32_t theme = zmk_display_settings_theme();
+    bool yads_theme = theme == 1;
+    bool dashboard_theme = theme == 2;
 
-    zmk_widget_output_status_set_compact(&output_status_widget, yads_theme);
+    zmk_widget_output_status_set_compact(&output_status_widget, yads_theme || dashboard_theme);
     lv_obj_align(zmk_widget_output_status_obj(&output_status_widget),
-                 yads_theme ? LV_ALIGN_TOP_RIGHT : LV_ALIGN_TOP_LEFT, 0, 0);
+                 dashboard_theme ? LV_ALIGN_BOTTOM_MID :
+                 (yads_theme ? LV_ALIGN_TOP_RIGHT : LV_ALIGN_TOP_LEFT), 0,
+                 dashboard_theme ? -1 : 0);
 
     set_widget_visible(zmk_widget_typed_keys_status_obj(&typed_keys_status_widget), yads_theme);
     if (yads_theme) {
@@ -82,27 +87,36 @@ static void apply_runtime_display_settings(struct k_work *work) {
 
 #if IS_ENABLED(CONFIG_ZMK_DONGLE_DISPLAY_WPM)
     set_widget_visible(zmk_widget_wpm_status_obj(&wpm_status_widget),
-                       yads_theme || zmk_display_settings_wpm_enabled());
+                       yads_theme || dashboard_theme || zmk_display_settings_wpm_enabled());
     if (yads_theme) {
         lv_obj_align(zmk_widget_wpm_status_obj(&wpm_status_widget), LV_ALIGN_TOP_LEFT, 0, 0);
+    } else if (dashboard_theme) {
+        lv_obj_align(zmk_widget_wpm_status_obj(&wpm_status_widget), LV_ALIGN_LEFT_MID, 12, -5);
     } else {
         lv_obj_align_to(zmk_widget_wpm_status_obj(&wpm_status_widget),
                         zmk_widget_output_status_obj(&output_status_widget),
                         LV_ALIGN_OUT_RIGHT_MID, 7, 0);
     }
     zmk_widget_wpm_status_refresh(&wpm_status_widget);
+    set_widget_visible(zmk_widget_wpm_status_obj(&wpm_peak_status_widget), dashboard_theme);
+    if (dashboard_theme) {
+        lv_obj_align(zmk_widget_wpm_status_obj(&wpm_peak_status_widget), LV_ALIGN_RIGHT_MID, -12,
+                     -5);
+        zmk_widget_wpm_status_set_peak(&wpm_peak_status_widget, true);
+    }
 #endif
 
 #if IS_ENABLED(CONFIG_ZMK_KEY_STATS)
     set_widget_visible(zmk_widget_key_stats_status_obj(&key_stats_status_widget),
-                       !yads_theme && zmk_display_settings_key_stats_enabled());
+                       (dashboard_theme || (!yads_theme && zmk_display_settings_key_stats_enabled())));
+    zmk_widget_key_stats_status_set_dashboard(&key_stats_status_widget, dashboard_theme);
     lv_obj_align(zmk_widget_key_stats_status_obj(&key_stats_status_widget), LV_ALIGN_TOP_LEFT,
-                 MAX(0, zmk_display_settings_key_stats_x() - 4),
-                 zmk_display_settings_key_stats_y());
+                 dashboard_theme ? 92 : MAX(0, zmk_display_settings_key_stats_x() - 4),
+                 dashboard_theme ? 53 : zmk_display_settings_key_stats_y());
 #endif
 
 #if IS_ENABLED(CONFIG_ZMK_DONGLE_DISPLAY_BONGO_CAT)
-    bool bongo_cat_enabled = !yads_theme && zmk_display_settings_bongo_cat_enabled();
+    bool bongo_cat_enabled = !yads_theme && !dashboard_theme && zmk_display_settings_bongo_cat_enabled();
     set_widget_visible(zmk_widget_bongo_cat_obj(&bongo_cat_widget), bongo_cat_enabled);
 #else
     bool bongo_cat_enabled = false;
@@ -110,7 +124,7 @@ static void apply_runtime_display_settings(struct k_work *work) {
 
 #if IS_ENABLED(CONFIG_ZMK_DONGLE_DISPLAY_MODIFIERS)
     set_widget_visible(zmk_widget_modifiers_obj(&modifiers_widget),
-                       zmk_display_settings_modifiers_enabled());
+                       !dashboard_theme && zmk_display_settings_modifiers_enabled());
     zmk_widget_modifiers_set_active_only(&modifiers_widget, yads_theme);
     lv_obj_align(zmk_widget_modifiers_obj(&modifiers_widget),
                  yads_theme ? LV_ALIGN_CENTER : LV_ALIGN_BOTTOM_LEFT, 0,
@@ -118,16 +132,19 @@ static void apply_runtime_display_settings(struct k_work *work) {
     zmk_widget_modifiers_refresh(&modifiers_widget);
 #if IS_ENABLED(CONFIG_ZMK_HID_INDICATORS)
     set_widget_visible(zmk_widget_hid_indicators_obj(&hid_indicators_widget),
-                       !yads_theme && zmk_display_settings_modifiers_enabled());
+                       !yads_theme && !dashboard_theme && zmk_display_settings_modifiers_enabled());
 #endif
 #endif
 
 #if IS_ENABLED(CONFIG_ZMK_DONGLE_DISPLAY_LAYER)
     set_widget_visible(zmk_widget_layer_status_obj(&layer_status_widget),
-                       !yads_theme && zmk_display_settings_layer_enabled());
+                       dashboard_theme || (!yads_theme && zmk_display_settings_layer_enabled()));
+    zmk_widget_layer_status_set_dashboard(&layer_status_widget, dashboard_theme);
     zmk_widget_layer_status_refresh(&layer_status_widget);
 #if IS_ENABLED(CONFIG_ZMK_DONGLE_DISPLAY_BONGO_CAT)
-    if (bongo_cat_enabled) {
+    if (dashboard_theme) {
+        lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget), LV_ALIGN_CENTER, 0, -2);
+    } else if (bongo_cat_enabled) {
         lv_obj_align_to(zmk_widget_layer_status_obj(&layer_status_widget),
                         zmk_widget_bongo_cat_obj(&bongo_cat_widget), LV_ALIGN_BOTTOM_RIGHT, 0, 5);
     } else {
@@ -135,14 +152,23 @@ static void apply_runtime_display_settings(struct k_work *work) {
                      -3);
     }
 #else
-    lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget), LV_ALIGN_BOTTOM_RIGHT, 0, -3);
+    if (dashboard_theme) {
+        lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget), LV_ALIGN_CENTER, 0, -2);
+    } else {
+        lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget), LV_ALIGN_BOTTOM_RIGHT, 0,
+                     -3);
+    }
 #endif
 #endif
 
 #if IS_ENABLED(CONFIG_ZMK_BATTERY)
-    zmk_widget_dongle_battery_status_set_split_layout(&dongle_battery_status_widget, yads_theme);
+    zmk_widget_dongle_battery_status_set_dashboard_layout(&dongle_battery_status_widget,
+                                                           dashboard_theme);
+    zmk_widget_dongle_battery_status_set_split_layout(&dongle_battery_status_widget,
+                                                      yads_theme);
     lv_obj_align(zmk_widget_dongle_battery_status_obj(&dongle_battery_status_widget),
-                 yads_theme ? LV_ALIGN_BOTTOM_MID : LV_ALIGN_TOP_RIGHT, 0, 0);
+                 dashboard_theme ? LV_ALIGN_TOP_LEFT :
+                 (yads_theme ? LV_ALIGN_BOTTOM_MID : LV_ALIGN_TOP_RIGHT), 0, 0);
     zmk_widget_dongle_battery_status_refresh(&dongle_battery_status_widget);
 #endif
 }
@@ -183,6 +209,9 @@ lv_obj_t *zmk_display_status_screen() {
     lv_obj_align_to(zmk_widget_wpm_status_obj(&wpm_status_widget),
                     zmk_widget_output_status_obj(&output_status_widget), LV_ALIGN_OUT_RIGHT_MID, 7,
                     0);
+    zmk_widget_wpm_status_init(&wpm_peak_status_widget, screen);
+    zmk_widget_wpm_status_set_peak(&wpm_peak_status_widget, true);
+    set_widget_visible(zmk_widget_wpm_status_obj(&wpm_peak_status_widget), false);
 #endif
 
 #if IS_ENABLED(CONFIG_ZMK_KEY_STATS)

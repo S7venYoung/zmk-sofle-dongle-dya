@@ -21,6 +21,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #endif
 
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
+static bool dashboard_mode;
 
 struct layer_status_state {
     uint8_t index;
@@ -28,7 +29,15 @@ struct layer_status_state {
 };
 
 static void set_layer_symbol(lv_obj_t *label, struct layer_status_state state) {
-    if (state.label == NULL) {
+    if (dashboard_mode) {
+        const char *text = "D";
+        if (state.index == 1) {
+            text = "N";
+        } else if (state.index == 2) {
+            text = "R";
+        }
+        lv_label_set_text(label, text);
+    } else if (state.label == NULL) {
         char text[7] = {};
 
         sprintf(text, "%i", state.index);
@@ -62,6 +71,12 @@ ZMK_DISPLAY_WIDGET_LISTENER(widget_layer_status, struct layer_status_state, laye
 ZMK_SUBSCRIPTION(widget_layer_status, zmk_layer_state_changed);
 
 void zmk_widget_layer_status_refresh(struct zmk_widget_layer_status *widget) {
+    if (dashboard_mode) {
+        lv_obj_set_width(widget->obj, 20);
+        lv_obj_set_style_text_align(widget->obj, LV_TEXT_ALIGN_CENTER, 0);
+        lv_obj_set_style_text_font(widget->obj, &lv_font_unscii_16, 0);
+        return;
+    }
 #if IS_ENABLED(CONFIG_ZMK_CUSTOM_SETTINGS)
     lv_obj_set_width(widget->obj, zmk_display_settings_layer_width());
     int32_t alignment = zmk_display_settings_layer_alignment();
@@ -82,6 +97,13 @@ void zmk_widget_layer_status_refresh(struct zmk_widget_layer_status *widget) {
         lv_obj_set_style_text_align(widget->obj, LV_TEXT_ALIGN_LEFT, 0);
     }
 #endif
+}
+
+void zmk_widget_layer_status_set_dashboard(struct zmk_widget_layer_status *widget, bool enabled)
+{
+    dashboard_mode = enabled;
+    zmk_widget_layer_status_refresh(widget);
+    layer_status_update_cb(layer_status_get_state(NULL));
 }
 
 int zmk_widget_layer_status_init(struct zmk_widget_layer_status *widget, lv_obj_t *parent) {

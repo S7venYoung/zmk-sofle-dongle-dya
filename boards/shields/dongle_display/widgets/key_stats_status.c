@@ -18,6 +18,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include "key_stats_status.h"
 
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
+static bool dashboard_mode;
 
 struct key_stats_status_state {
     uint32_t total;
@@ -65,6 +66,21 @@ static void set_key_stats(struct zmk_widget_key_stats_status *widget,
 
     format_count(count, sizeof(count), state.today);
     lv_label_set_text(widget->today_value_label, count);
+    if (dashboard_mode) {
+        lv_obj_add_flag(widget->today_label, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(widget->today_value_label, LV_OBJ_FLAG_HIDDEN);
+        lv_label_set_text(widget->total_label, "T");
+    } else {
+        lv_obj_clear_flag(widget->today_label, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_clear_flag(widget->today_value_label, LV_OBJ_FLAG_HIDDEN);
+    }
+}
+
+void zmk_widget_key_stats_status_set_dashboard(struct zmk_widget_key_stats_status *widget,
+                                               bool enabled) {
+    dashboard_mode = enabled;
+    lv_obj_set_size(widget->obj, enabled ? 34 : 50, enabled ? 9 : 18);
+    set_key_stats(widget, get_state(NULL));
 }
 
 static void key_stats_status_update_cb(struct key_stats_status_state state) {

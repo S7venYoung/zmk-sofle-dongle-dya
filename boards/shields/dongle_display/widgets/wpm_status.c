@@ -20,10 +20,11 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 LV_IMG_DECLARE(sym_speedometer);
 
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
-static int last_wpm = -1;
+static int peak_wpm;
 struct wpm_status_state
 {
     int wpm;
+    int peak;
     const char *layer;
 };
 
@@ -32,18 +33,24 @@ static struct wpm_status_state get_state(const zmk_event_t *_eh)
     const struct zmk_wpm_state_changed *ev = as_zmk_wpm_state_changed(_eh);
     uint8_t index = zmk_keymap_highest_layer_active();
 
+    int current = ev ? ev->state : zmk_wpm_get_state();
+    if (current > peak_wpm) {
+        peak_wpm = current;
+    }
     return (struct wpm_status_state){
-        .wpm = ev ? ev->state : 0,
+        .wpm = current,
+        .peak = peak_wpm,
         .layer = zmk_keymap_layer_name(index)
     };
 }
 
 static void set_wpm(struct zmk_widget_wpm_status *widget, struct wpm_status_state state)
 {
-    if (state.wpm == last_wpm) {
+    int value = widget->peak_mode ? state.peak : state.wpm;
+    if (value == widget->last_value) {
         return;
     }
-    last_wpm = state.wpm;
+    widget->last_value = value;
 
     const char *disabled_layers = CONFIG_ZMK_DONGLE_DISPLAY_WPM_DISABLED_LAYERS;
 #if IS_ENABLED(CONFIG_ZMK_CUSTOM_SETTINGS)
@@ -56,7 +63,7 @@ static void set_wpm(struct zmk_widget_wpm_status *widget, struct wpm_status_stat
     }
 
     char wpm_text[12];
-    snprintf(wpm_text, sizeof(wpm_text), "%i", state.wpm);
+    snprintf(wpm_text, sizeof(wpm_text), widget->peak_mode ? "M%i" : "%i", value);
     lv_label_set_text(widget->wpm_label, wpm_text);
 }
 
@@ -75,16 +82,30 @@ ZMK_SUBSCRIPTION(widget_wpm_status, zmk_wpm_state_changed);
 
 void zmk_widget_wpm_status_refresh(struct zmk_widget_wpm_status *widget)
 {
-    last_wpm = -1;
+    widget->last_value = -1;
+    int current = zmk_wpm_get_state();
+    if (current > peak_wpm) {
+        peak_wpm = current;
+    }
     set_wpm(widget, (struct wpm_status_state) {
-        .wpm = zmk_wpm_get_state(),
+        .wpm = current,
+        .peak = peak_wpm,
         .layer = zmk_keymap_layer_name(zmk_keymap_highest_layer_active()),
     });
+}
+
+void zmk_widget_wpm_status_set_peak(struct zmk_widget_wpm_status *widget, bool peak)
+{
+    widget->peak_mode = peak;
+    widget->last_value = -1;
+    zmk_widget_wpm_status_refresh(widget);
 }
 
 int zmk_widget_wpm_status_init(struct zmk_widget_wpm_status *widget, lv_obj_t *parent)
 {
     widget->obj = lv_obj_create(parent);
+    widget->peak_mode = false;
+    widget->last_value = -1;
     lv_obj_set_size(widget->obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
 
     lv_obj_t *speedometer = lv_img_create(widget->obj);
