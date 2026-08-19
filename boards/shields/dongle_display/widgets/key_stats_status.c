@@ -79,11 +79,11 @@ static void set_key_stats(struct zmk_widget_key_stats_status *widget,
 void zmk_widget_key_stats_status_set_dashboard(struct zmk_widget_key_stats_status *widget,
                                                bool enabled) {
     dashboard_mode = enabled;
-    lv_obj_set_size(widget->obj, enabled ? 20 : 50, enabled ? 8 : 18);
+    lv_obj_set_size(widget->obj, enabled ? 38 : 50, enabled ? 8 : 18);
     if (enabled) {
         lv_obj_set_style_text_font(widget->total_label, &lv_font_unscii_8, 0);
         lv_obj_set_style_text_font(widget->total_value_label, &lv_font_unscii_8, 0);
-        lv_obj_set_width(widget->total_value_label, 15);
+        lv_obj_set_width(widget->total_value_label, 31);
         lv_obj_set_style_text_align(widget->total_value_label, LV_TEXT_ALIGN_RIGHT, 0);
     } else {
         lv_obj_set_size(widget->obj, 50, 18);
