@@ -26,22 +26,15 @@ static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 static int peak_wpm;
 static int64_t peak_wpm_updated_at;
 
-/* A native LVGL polyline is used for the enlarged dashboard gauge. Scaling
- * the 14x14 I1 speedometer bitmap is unreliable on the monochrome display. */
-static const lv_point_precise_t dashboard_gauge_points[] = {
-    {3, 36}, {3, 32}, {4, 27}, {6, 22}, {9, 17}, {13, 13}, {17, 10}, {21, 9},
-    {25, 10}, {29, 13}, {33, 17}, {36, 22}, {38, 27}, {39, 32}, {39, 36},
-};
-
-/* Seven inward-facing ticks follow the same semicircle as the YADS gauge. */
+/* Seven inward-facing ticks follow a true 40 px circular arc. */
 static const lv_point_precise_t dashboard_tick_points[7][2] = {
-    {{4, 31}, {8, 31}},
-    {{7, 22}, {11, 24}},
-    {{13, 14}, {16, 18}},
-    {{21, 9}, {21, 14}},
-    {{29, 14}, {26, 18}},
-    {{35, 22}, {31, 24}},
-    {{38, 31}, {34, 31}},
+    {{2, 32}, {7, 32}},
+    {{6, 23}, {10, 26}},
+    {{13, 18}, {15, 23}},
+    {{21, 16}, {21, 21}},
+    {{29, 18}, {27, 23}},
+    {{36, 23}, {32, 26}},
+    {{40, 32}, {35, 32}},
 };
 
 static int update_peak_wpm(int current)
@@ -103,8 +96,8 @@ static void set_wpm(struct zmk_widget_wpm_status *widget, struct wpm_status_stat
 
     if (widget->needle != NULL) {
         int level = CLAMP(value, 0, 120);
-        static const int x[] = {4, 7, 21, 35, 38};
-        static const int y[] = {36, 18, 7, 18, 36};
+        static const int x[] = {2, 7, 21, 35, 40};
+        static const int y[] = {36, 22, 16, 22, 36};
         int segment = MIN(level / 30, 3);
         int rem = level % 30;
         widget->needle_points[1].x = x[segment] + (x[segment + 1] - x[segment]) * rem / 30;
@@ -182,11 +175,15 @@ int zmk_widget_wpm_status_init(struct zmk_widget_wpm_status *widget, lv_obj_t *p
     lv_obj_align(widget->speedometer, LV_ALIGN_TOP_LEFT, 0, 0);
     lv_img_set_src(widget->speedometer, &sym_speedometer);
 
-    widget->gauge_arc = lv_line_create(widget->obj);
-    lv_line_set_points(widget->gauge_arc, dashboard_gauge_points,
-                       ARRAY_SIZE(dashboard_gauge_points));
-    lv_obj_set_style_line_width(widget->gauge_arc, 1, 0);
-    lv_obj_set_style_line_rounded(widget->gauge_arc, true, 0);
+    widget->gauge_arc = lv_arc_create(widget->obj);
+    lv_obj_set_size(widget->gauge_arc, 40, 40);
+    lv_obj_set_pos(widget->gauge_arc, 1, 16);
+    lv_arc_set_bg_angles(widget->gauge_arc, 180, 360);
+    lv_obj_set_style_arc_width(widget->gauge_arc, 1, LV_PART_MAIN);
+    lv_obj_set_style_arc_rounded(widget->gauge_arc, false, LV_PART_MAIN);
+    lv_obj_set_style_arc_opa(widget->gauge_arc, LV_OPA_TRANSP, LV_PART_INDICATOR);
+    lv_obj_remove_style(widget->gauge_arc, NULL, LV_PART_KNOB);
+    lv_obj_clear_flag(widget->gauge_arc, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_flag(widget->gauge_arc, LV_OBJ_FLAG_HIDDEN);
 
     for (size_t i = 0; i < ARRAY_SIZE(widget->gauge_ticks); i++) {
