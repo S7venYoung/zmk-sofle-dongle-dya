@@ -277,7 +277,10 @@ void zmk_widget_output_status_set_compact(struct zmk_widget_output_status *widge
     lv_obj_t *compact_label = lv_obj_get_child(widget->obj, output_symbol_compact_label);
     if (compact) {
         lv_obj_clear_flag(compact_label, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_align(compact_label, LV_ALIGN_TOP_RIGHT, 0, 0);
+        lv_obj_set_size(widget->obj, 30, 9);
+        lv_obj_set_style_text_font(compact_label, &lv_font_unscii_8, 0);
+        lv_obj_set_style_text_align(compact_label, LV_TEXT_ALIGN_CENTER, 0);
+        lv_obj_align(compact_label, LV_ALIGN_CENTER, 0, 0);
     } else {
         lv_obj_add_flag(compact_label, LV_OBJ_FLAG_HIDDEN);
     }

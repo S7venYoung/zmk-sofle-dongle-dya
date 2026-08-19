@@ -78,6 +78,10 @@ static void apply_runtime_display_settings(struct k_work *work) {
                  dashboard_theme ? LV_ALIGN_BOTTOM_MID :
                  (yads_theme ? LV_ALIGN_TOP_RIGHT : LV_ALIGN_TOP_LEFT), 0,
                  dashboard_theme ? -1 : 0);
+    if (dashboard_theme) {
+        lv_obj_align(zmk_widget_output_status_obj(&output_status_widget), LV_ALIGN_BOTTOM_LEFT,
+                     36, -1);
+    }
 
     set_widget_visible(zmk_widget_typed_keys_status_obj(&typed_keys_status_widget), yads_theme);
     if (yads_theme) {
@@ -91,7 +95,7 @@ static void apply_runtime_display_settings(struct k_work *work) {
     if (yads_theme) {
         lv_obj_align(zmk_widget_wpm_status_obj(&wpm_status_widget), LV_ALIGN_TOP_LEFT, 0, 0);
     } else if (dashboard_theme) {
-        lv_obj_align(zmk_widget_wpm_status_obj(&wpm_status_widget), LV_ALIGN_LEFT_MID, 12, -5);
+        lv_obj_align(zmk_widget_wpm_status_obj(&wpm_status_widget), LV_ALIGN_LEFT_MID, 18, -6);
     } else {
         lv_obj_align_to(zmk_widget_wpm_status_obj(&wpm_status_widget),
                         zmk_widget_output_status_obj(&output_status_widget),
@@ -100,8 +104,8 @@ static void apply_runtime_display_settings(struct k_work *work) {
     zmk_widget_wpm_status_refresh(&wpm_status_widget);
     set_widget_visible(zmk_widget_wpm_status_obj(&wpm_peak_status_widget), dashboard_theme);
     if (dashboard_theme) {
-        lv_obj_align(zmk_widget_wpm_status_obj(&wpm_peak_status_widget), LV_ALIGN_RIGHT_MID, -12,
-                     -5);
+        lv_obj_align(zmk_widget_wpm_status_obj(&wpm_peak_status_widget), LV_ALIGN_RIGHT_MID, -18,
+                     -6);
         zmk_widget_wpm_status_set_peak(&wpm_peak_status_widget, true);
     }
 #endif

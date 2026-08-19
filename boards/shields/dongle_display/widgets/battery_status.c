@@ -117,19 +117,13 @@ static void set_battery_symbol(uint8_t object_index, struct battery_state state)
     lv_obj_t *bar_fill = battery_objects[object_index].bar_fill;
 
     if (dashboard_layout && object_index < 2) {
-        if (state.level > 0) {
-            lv_label_set_text_fmt(label, "%u", state.level);
-        } else {
-            lv_label_set_text(label, "X");
-        }
-        lv_obj_set_style_text_font(label, &lv_font_unscii_8, 0);
-        lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
-        lv_obj_set_size(bar_track, 4, 30);
+        lv_label_set_text(label, "");
+        lv_obj_set_size(bar_track, 3, 64);
         lv_obj_set_style_border_width(bar_track, 1, 0);
-        lv_obj_set_size(bar_fill, 4, MAX(1, DIV_ROUND_UP(30 * state.level, 100)));
+        lv_obj_set_size(bar_fill, 3, MAX(1, DIV_ROUND_UP(64 * state.level, 100)));
         lv_obj_align(bar_fill, LV_ALIGN_BOTTOM_MID, 0, 0);
         lv_obj_add_flag(symbol, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_clear_flag(label, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(label, LV_OBJ_FLAG_HIDDEN);
         lv_obj_clear_flag(bar_track, LV_OBJ_FLAG_HIDDEN);
         lv_obj_move_foreground(bar_track);
         if (state.level > 0) {
@@ -228,7 +222,7 @@ void zmk_widget_dongle_battery_status_refresh(struct zmk_widget_dongle_battery_s
     }
 
     if (dashboard_layout) {
-        lv_obj_set_size(widget->obj, 128, 40);
+        lv_obj_set_size(widget->obj, 128, 64);
         for (uint8_t i = 0; i < MIN(2, ZMK_SPLIT_BLE_PERIPHERAL_COUNT); i++) {
             struct battery_state state = {
                 .source = i,
@@ -241,9 +235,7 @@ void zmk_widget_dongle_battery_status_refresh(struct zmk_widget_dongle_battery_s
             set_battery_symbol(i, state);
             struct battery_object *object = &battery_objects[i];
             lv_obj_align(object->bar_track, i == 0 ? LV_ALIGN_LEFT_MID : LV_ALIGN_RIGHT_MID,
-                         i == 0 ? 2 : -2, 2);
-            lv_obj_align(object->label, i == 0 ? LV_ALIGN_LEFT_MID : LV_ALIGN_RIGHT_MID,
-                         i == 0 ? 7 : -7, 2);
+                         i == 0 ? 0 : 0, 0);
         }
         return;
     }
