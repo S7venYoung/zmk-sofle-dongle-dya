@@ -91,8 +91,8 @@ static void apply_runtime_display_settings(struct k_work *work) {
     }
 
 #if IS_ENABLED(CONFIG_ZMK_DONGLE_DISPLAY_WPM)
-    zmk_widget_wpm_status_set_dashboard(&wpm_status_widget, dashboard_theme);
-    zmk_widget_wpm_status_set_dashboard(&wpm_peak_status_widget, dashboard_theme);
+    zmk_widget_wpm_status_set_dashboard(&wpm_status_widget, false);
+    zmk_widget_wpm_status_set_dashboard(&wpm_peak_status_widget, false);
     set_widget_visible(zmk_widget_wpm_status_obj(&wpm_status_widget),
                        yads_theme || dashboard_theme || zmk_display_settings_wpm_enabled());
     if (yads_theme) {
