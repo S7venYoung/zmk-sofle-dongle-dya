@@ -114,9 +114,11 @@ void zmk_widget_wpm_status_set_peak(struct zmk_widget_wpm_status *widget, bool p
 
 void zmk_widget_wpm_status_set_dashboard(struct zmk_widget_wpm_status *widget, bool enabled)
 {
-    lv_obj_set_size(widget->obj, enabled ? 52 : LV_SIZE_CONTENT,
-                    enabled ? 32 : LV_SIZE_CONTENT);
-    lv_img_set_zoom(widget->speedometer, enabled ? 220 : LV_ZOOM_NONE);
+    /* Keep the enlarged dashboard gauge and its needle in one coordinate system. */
+    lv_obj_set_size(widget->obj, enabled ? 44 : LV_SIZE_CONTENT,
+                    enabled ? 42 : LV_SIZE_CONTENT);
+    lv_img_set_zoom(widget->speedometer, enabled ? 300 : LV_ZOOM_NONE);
+    lv_obj_clear_flag(widget->speedometer, LV_OBJ_FLAG_HIDDEN);
     lv_obj_set_style_text_font(widget->wpm_label, enabled ? &lv_font_unscii_16 : LV_FONT_DEFAULT, 0);
     if (enabled) {
         lv_obj_add_flag(widget->wpm_label, LV_OBJ_FLAG_HIDDEN);
