@@ -81,7 +81,7 @@ static void apply_runtime_display_settings(struct k_work *work) {
                  dashboard_theme ? -1 : 0);
     if (dashboard_theme) {
         lv_obj_align(zmk_widget_output_status_obj(&output_status_widget), LV_ALIGN_BOTTOM_LEFT,
-                     29, -1);
+                     22, -1);
     }
 
     set_widget_visible(zmk_widget_typed_keys_status_obj(&typed_keys_status_widget), yads_theme);
@@ -117,9 +117,14 @@ static void apply_runtime_display_settings(struct k_work *work) {
     set_widget_visible(zmk_widget_key_stats_status_obj(&key_stats_status_widget),
                        (dashboard_theme || (!yads_theme && zmk_display_settings_key_stats_enabled())));
     zmk_widget_key_stats_status_set_dashboard(&key_stats_status_widget, dashboard_theme);
-    lv_obj_align(zmk_widget_key_stats_status_obj(&key_stats_status_widget), LV_ALIGN_TOP_LEFT,
-                 dashboard_theme ? 88 : MAX(0, zmk_display_settings_key_stats_x() - 4),
-                 dashboard_theme ? 53 : zmk_display_settings_key_stats_y());
+    if (dashboard_theme) {
+        lv_obj_align(zmk_widget_key_stats_status_obj(&key_stats_status_widget),
+                     LV_ALIGN_BOTTOM_LEFT, 75, -1);
+    } else {
+        lv_obj_align(zmk_widget_key_stats_status_obj(&key_stats_status_widget), LV_ALIGN_TOP_LEFT,
+                     MAX(0, zmk_display_settings_key_stats_x() - 4),
+                     zmk_display_settings_key_stats_y());
+    }
 #endif
 
 #if IS_ENABLED(CONFIG_ZMK_DONGLE_DISPLAY_BONGO_CAT)
