@@ -107,8 +107,8 @@ static void apply_runtime_display_settings(struct k_work *work) {
     zmk_widget_wpm_status_refresh(&wpm_status_widget);
     set_widget_visible(zmk_widget_wpm_status_obj(&wpm_peak_status_widget), dashboard_theme);
     if (dashboard_theme) {
-        lv_obj_align(zmk_widget_wpm_status_obj(&wpm_peak_status_widget), LV_ALIGN_RIGHT_MID, -18,
-                     -6);
+        lv_obj_align(zmk_widget_wpm_status_obj(&wpm_peak_status_widget), LV_ALIGN_RIGHT_MID, -12,
+                     -7);
         zmk_widget_wpm_status_set_peak(&wpm_peak_status_widget, true);
     }
 #endif
@@ -160,7 +160,7 @@ static void apply_runtime_display_settings(struct k_work *work) {
     }
 #else
     if (dashboard_theme) {
-        lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget), LV_ALIGN_CENTER, 0, -2);
+        lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget), LV_ALIGN_CENTER, 0, -9);
     } else {
         lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget), LV_ALIGN_BOTTOM_RIGHT, 0,
                      -3);
