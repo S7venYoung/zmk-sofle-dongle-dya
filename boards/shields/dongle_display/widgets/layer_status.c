@@ -77,6 +77,9 @@ void zmk_widget_layer_status_refresh(struct zmk_widget_layer_status *widget) {
         lv_obj_set_style_text_font(widget->obj, &lv_font_unscii_16, 0);
         return;
     }
+    /* Dashboard themes use the large font. Always restore the native font
+     * before applying the normal theme's width/alignment settings. */
+    lv_obj_set_style_text_font(widget->obj, LV_FONT_DEFAULT, 0);
 #if IS_ENABLED(CONFIG_ZMK_CUSTOM_SETTINGS)
     lv_obj_set_width(widget->obj, zmk_display_settings_layer_width());
     int32_t alignment = zmk_display_settings_layer_alignment();

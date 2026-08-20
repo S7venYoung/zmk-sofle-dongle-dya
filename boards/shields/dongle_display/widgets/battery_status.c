@@ -37,6 +37,8 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define BUFFER_SIZE LV_CANVAS_BUF_SIZE(5, 8, LV_COLOR_FORMAT_GET_BPP(LV_COLOR_FORMAT_L8), LV_DRAW_BUF_STRIDE_ALIGN)
 #define SPLIT_BATTERY_BAR_MAX_WIDTH 54
 #define SPLIT_BATTERY_BAR_HEIGHT 4
+#define BMW_BATTERY_BAR_WIDTH 46
+#define BMW_BATTERY_BAR_HEIGHT 3
 
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 
@@ -60,6 +62,7 @@ static struct battery_state peripheral_states[MAX(1, ZMK_SPLIT_BLE_PERIPHERAL_CO
 static bool peripheral_state_valid[MAX(1, ZMK_SPLIT_BLE_PERIPHERAL_COUNT)];
 static bool split_layout;
 static bool dashboard_layout;
+static bool bmw_layout;
     
 static lv_color_t battery_image_buffer[ZMK_SPLIT_BLE_PERIPHERAL_COUNT + SOURCE_OFFSET][BUFFER_SIZE];
 
@@ -135,6 +138,27 @@ static void set_battery_symbol(uint8_t object_index, struct battery_state state)
         return;
     }
 
+    if (bmw_layout && object_index < 2) {
+        lv_label_set_text(label, "");
+        lv_obj_set_size(bar_track, BMW_BATTERY_BAR_WIDTH, BMW_BATTERY_BAR_HEIGHT);
+        lv_obj_set_style_border_width(bar_track, 1, 0);
+        lv_obj_set_size(bar_fill,
+                        MAX(1, DIV_ROUND_UP(BMW_BATTERY_BAR_WIDTH * state.level, 100)),
+                        BMW_BATTERY_BAR_HEIGHT);
+        /* BMW theme leaves a clear centre gap. Charge grows from the centre
+         * towards the corresponding outside edge. */
+        lv_obj_align(bar_fill, object_index == 0 ? LV_ALIGN_RIGHT_MID : LV_ALIGN_LEFT_MID, 0, 0);
+        lv_obj_add_flag(symbol, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(label, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_clear_flag(bar_track, LV_OBJ_FLAG_HIDDEN);
+        if (state.level > 0) {
+            lv_obj_clear_flag(bar_fill, LV_OBJ_FLAG_HIDDEN);
+        } else {
+            lv_obj_add_flag(bar_fill, LV_OBJ_FLAG_HIDDEN);
+        }
+        return;
+    }
+
     if (split_layout && object_index < 2) {
         if (state.level > 0) {
             lv_label_set_text_fmt(label, "%u", state.level);
@@ -145,6 +169,8 @@ static void set_battery_symbol(uint8_t object_index, struct battery_state state)
         lv_obj_set_style_text_font(label, &lv_font_unscii_8, 0);
         lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
         lv_obj_set_width(label, SPLIT_BATTERY_BAR_MAX_WIDTH);
+        lv_obj_set_size(bar_track, SPLIT_BATTERY_BAR_MAX_WIDTH, SPLIT_BATTERY_BAR_HEIGHT);
+        lv_obj_set_style_border_width(bar_track, 1, 0);
         lv_obj_set_size(bar_fill,
                         MAX(1, DIV_ROUND_UP(SPLIT_BATTERY_BAR_MAX_WIDTH * state.level, 100)),
                         SPLIT_BATTERY_BAR_HEIGHT);
@@ -171,6 +197,7 @@ static void set_battery_symbol(uint8_t object_index, struct battery_state state)
     lv_obj_add_flag(bar_track, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(bar_fill, LV_OBJ_FLAG_HIDDEN);
     lv_obj_set_width(label, LV_SIZE_CONTENT);
+    lv_obj_set_style_text_font(label, LV_FONT_DEFAULT, 0);
     lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_LEFT, 0);
     draw_battery(symbol, state.level, state.usb_present);
     lv_label_set_text_fmt(label, "%4u%% ", state.level);
@@ -221,6 +248,25 @@ void zmk_widget_dongle_battery_status_refresh(struct zmk_widget_dongle_battery_s
         return;
     }
 
+    if (bmw_layout) {
+        lv_obj_set_size(widget->obj, 128, BMW_BATTERY_BAR_HEIGHT);
+        for (uint8_t i = 0; i < MIN(2, ZMK_SPLIT_BLE_PERIPHERAL_COUNT); i++) {
+            struct battery_state state = {
+                .source = i,
+                .level = 0,
+                .central = false,
+            };
+            if (peripheral_state_valid[i]) {
+                state = peripheral_states[i];
+            }
+            set_battery_symbol(i, state);
+            lv_obj_align(battery_objects[i].bar_track,
+                         i == 0 ? LV_ALIGN_BOTTOM_LEFT : LV_ALIGN_BOTTOM_RIGHT,
+                         i == 0 ? 1 : -1, 0);
+        }
+        return;
+    }
+
     if (dashboard_layout) {
         lv_obj_set_size(widget->obj, 128, 64);
         for (uint8_t i = 0; i < MIN(2, ZMK_SPLIT_BLE_PERIPHERAL_COUNT); i++) {
@@ -267,6 +313,10 @@ void zmk_widget_dongle_battery_status_refresh(struct zmk_widget_dongle_battery_s
 void zmk_widget_dongle_battery_status_set_split_layout(
     struct zmk_widget_dongle_battery_status *widget, bool enabled) {
     split_layout = enabled;
+    if (enabled) {
+        dashboard_layout = false;
+        bmw_layout = false;
+    }
     zmk_widget_dongle_battery_status_refresh(widget);
 }
 
@@ -275,6 +325,17 @@ void zmk_widget_dongle_battery_status_set_dashboard_layout(
     dashboard_layout = enabled;
     if (enabled) {
         split_layout = false;
+        bmw_layout = false;
+    }
+    zmk_widget_dongle_battery_status_refresh(widget);
+}
+
+void zmk_widget_dongle_battery_status_set_bmw_layout(
+    struct zmk_widget_dongle_battery_status *widget, bool enabled) {
+    bmw_layout = enabled;
+    if (enabled) {
+        split_layout = false;
+        dashboard_layout = false;
     }
     zmk_widget_dongle_battery_status_refresh(widget);
 }

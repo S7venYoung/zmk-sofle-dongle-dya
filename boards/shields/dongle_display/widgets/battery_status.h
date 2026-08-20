@@ -21,3 +21,5 @@ void zmk_widget_dongle_battery_status_set_split_layout(
     struct zmk_widget_dongle_battery_status *widget, bool split_layout);
 void zmk_widget_dongle_battery_status_set_dashboard_layout(
     struct zmk_widget_dongle_battery_status *widget, bool enabled);
+void zmk_widget_dongle_battery_status_set_bmw_layout(
+    struct zmk_widget_dongle_battery_status *widget, bool enabled);

@@ -193,7 +193,7 @@ static void set_status_symbol(lv_obj_t *widget, struct output_status_state state
     } else {
         lv_img_set_src(bt_number, &sym_nok);
     }
-    
+
     if (state.active_profile_bonded) {
         if (state.active_profile_connected) {
             lv_img_set_src(bt_status, &sym_ok);
@@ -239,7 +239,7 @@ int zmk_widget_output_status_init(struct zmk_widget_output_status *widget, lv_ob
 
     lv_obj_t *bt_status = lv_img_create(widget->obj);
     lv_obj_align_to(bt_status, bt, LV_ALIGN_OUT_RIGHT_TOP, 2, 1);
-    
+
     static lv_style_t style_line;
     lv_style_init(&style_line);
     lv_style_set_line_width(&style_line, 2);
@@ -254,7 +254,7 @@ int zmk_widget_output_status_init(struct zmk_widget_output_status *widget, lv_ob
     lv_obj_set_style_text_font(compact_label, &lv_font_unscii_8, 0);
     lv_obj_set_style_text_align(compact_label, LV_TEXT_ALIGN_RIGHT, 0);
     lv_obj_add_flag(compact_label, LV_OBJ_FLAG_HIDDEN);
- 
+
     sys_slist_append(&widgets, &widget->node);
 
     widget_output_status_init();
@@ -293,6 +293,7 @@ void zmk_widget_output_status_set_compact(struct zmk_widget_output_status *widge
         }
     } else {
         lv_obj_add_flag(compact_label, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_set_size(widget->obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     }
 
     set_status_symbol(widget->obj, get_state(NULL));
