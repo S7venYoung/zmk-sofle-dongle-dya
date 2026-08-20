@@ -44,11 +44,11 @@ ZMK_RPC_CUSTOM_SUBSYSTEM(dongle_display_settings, &dongle_display_settings_meta,
 
 ZMK_CUSTOM_SETTING_DEFINE(
     display_theme, DISPLAY_SETTINGS_SUBSYSTEM, "display_theme",
-    ZMK_CUSTOM_SETTING_VALUE_TYPE_INT32, ZMK_CUSTOM_SETTING_VALUE_INT32(0),
+    ZMK_CUSTOM_SETTING_VALUE_TYPE_INT32, ZMK_CUSTOM_SETTING_VALUE_INT32(2),
     ZMK_CUSTOM_SETTING_CONFIDENTIALITY_RPC_PUBLIC,
     ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE,
     ZMK_CUSTOM_SETTING_PERMISSION_SECURE,
-    ZMK_CUSTOM_SETTING_RANGE_INT32(0, 3));
+    ZMK_CUSTOM_SETTING_RANGE_INT32(2, 3));
 
 ZMK_CUSTOM_SETTING_DEFINE(
     display_key_stats_enabled, DISPLAY_SETTINGS_SUBSYSTEM, "key_stats_enabled",
@@ -91,32 +91,8 @@ ZMK_CUSTOM_SETTING_DEFINE(
     ZMK_CUSTOM_SETTING_RANGE_INT32(20, 78));
 
 ZMK_CUSTOM_SETTING_DEFINE(
-    display_mac_modifiers, DISPLAY_SETTINGS_SUBSYSTEM, "mac_modifiers",
-    ZMK_CUSTOM_SETTING_VALUE_TYPE_BOOL, ZMK_CUSTOM_SETTING_VALUE_BOOL(true),
-    ZMK_CUSTOM_SETTING_CONFIDENTIALITY_RPC_PUBLIC,
-    ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE,
-    ZMK_CUSTOM_SETTING_PERMISSION_SECURE,
-    ZMK_CUSTOM_SETTING_NO_CONSTRAINT);
-
-ZMK_CUSTOM_SETTING_DEFINE(
     display_dongle_battery, DISPLAY_SETTINGS_SUBSYSTEM, "dongle_battery_enabled",
     ZMK_CUSTOM_SETTING_VALUE_TYPE_BOOL, ZMK_CUSTOM_SETTING_VALUE_BOOL(false),
-    ZMK_CUSTOM_SETTING_CONFIDENTIALITY_RPC_PUBLIC,
-    ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE,
-    ZMK_CUSTOM_SETTING_PERMISSION_SECURE,
-    ZMK_CUSTOM_SETTING_NO_CONSTRAINT);
-
-ZMK_CUSTOM_SETTING_DEFINE(
-    display_bongo_cat, DISPLAY_SETTINGS_SUBSYSTEM, "bongo_cat_enabled",
-    ZMK_CUSTOM_SETTING_VALUE_TYPE_BOOL, ZMK_CUSTOM_SETTING_VALUE_BOOL(true),
-    ZMK_CUSTOM_SETTING_CONFIDENTIALITY_RPC_PUBLIC,
-    ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE,
-    ZMK_CUSTOM_SETTING_PERMISSION_SECURE,
-    ZMK_CUSTOM_SETTING_NO_CONSTRAINT);
-
-ZMK_CUSTOM_SETTING_DEFINE(
-    display_modifiers, DISPLAY_SETTINGS_SUBSYSTEM, "modifiers_enabled",
-    ZMK_CUSTOM_SETTING_VALUE_TYPE_BOOL, ZMK_CUSTOM_SETTING_VALUE_BOOL(true),
     ZMK_CUSTOM_SETTING_CONFIDENTIALITY_RPC_PUBLIC,
     ZMK_CUSTOM_SETTING_PERMISSION_UNSECURE,
     ZMK_CUSTOM_SETTING_PERMISSION_SECURE,
@@ -153,7 +129,7 @@ bool zmk_display_settings_key_stats_enabled(void) {
 }
 
 int32_t zmk_display_settings_theme(void) {
-    int32_t value = 0;
+    int32_t value = 2;
     zmk_custom_setting_get_int32(&display_theme, &value);
     return value;
 }
@@ -189,10 +165,7 @@ int32_t zmk_display_settings_layer_width(void) {
         return value;                                                                              \
     }
 
-BOOL_SETTING_GETTER(zmk_display_settings_mac_modifiers, display_mac_modifiers, true)
 BOOL_SETTING_GETTER(zmk_display_settings_dongle_battery_enabled, display_dongle_battery, false)
-BOOL_SETTING_GETTER(zmk_display_settings_bongo_cat_enabled, display_bongo_cat, true)
-BOOL_SETTING_GETTER(zmk_display_settings_modifiers_enabled, display_modifiers, true)
 BOOL_SETTING_GETTER(zmk_display_settings_layer_enabled, display_layer, true)
 BOOL_SETTING_GETTER(zmk_display_settings_wpm_enabled, display_wpm, false)
 
