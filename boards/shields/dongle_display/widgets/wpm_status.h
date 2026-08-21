@@ -12,6 +12,8 @@ struct zmk_widget_wpm_status {
     sys_snode_t node;
     lv_obj_t *obj;
     lv_obj_t *background;
+    lv_obj_t *current_value;
+    lv_obj_t *peak_value;
     lv_obj_t *current_needle;
     lv_obj_t *peak_needle;
     lv_point_precise_t current_points[2];
