@@ -5,6 +5,79 @@ on:
     paths-ignore:
       - "keymap-drawer/**"
 
+permissions:
+  actions: read
+  contents: write
+
 jobs:
   build:
     uses: cormoran/zmk/.github/workflows/build-user-config.yml@v0.3-branch+dya
+
+  release-v4-1-2:
+    if: >-
+      github.ref == 'refs/heads/4.1-display-themes' &&
+      contains(github.event.head_commit.message, '[release-v4.1.2]')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download firmware artifact from this build
+        uses: actions/download-artifact@v4
+        with:
+          name: firmware
+          path: release
+
+      - name: Prepare complete firmware archive
+        run: |
+          find release -type f -name "*.uf2" -print
+          cd release
+          zip -9 ../zmk-sofle-dongle-dya-v4.1.2.zip ./*.uf2
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v4.1.2
+          name: v4.1.2 - OLED Display Themes
+          target_commitish: 4.1-display-themes
+          prerelease: false
+          generate_release_notes: false
+          body: |
+            ## 更新内容
+
+            本版本基于 ZMK / Zephyr 4.1 与 DYA Studio，为 Sofle Dongle 接收器增加可即时切换的 OLED 显示主题。
+
+            ### 新功能
+
+            - 保留原有 Classic 猫咪主题
+            - 新增 YADS 信息主题
+            - 可在 DYA Studio 的 `dongle_display_settings` 中设置 `display_theme`
+              - `0`：Classic
+              - `1`：YADS
+            - 主题修改后立即刷新，点击 Save 后可断电保存
+            - YADS 顶部显示实时 WPM 与 USB/BLE 连接状态
+            - YADS 中间显示最近输入的 5 个英文字母
+            - 空闲 5 秒后自动清除输入历史并显示当前层级
+            - 按下修饰键时显示修饰键状态并清理快捷键输入历史
+            - YADS 底部显示左右手电量数字与电量横条
+            - 新增 DYA 可配置的按键统计、层级对齐、WPM、猫动画及显示模块开关
+
+            ### 修复与优化
+
+            - 修复 Classic 默认主题第二行电量百分比与第一行未对齐的问题
+            - 保持第一行电量百分比原始位置、字体和图标间距不变
+            - 修复主题切换后组件可见性、位置和刷新状态
+            - 优化左右手电量、连接状态、层级名称和修饰键布局
+            - 保持 OLED 原生 Idle 熄屏机制，默认约 30 秒无操作后熄屏
+
+            ### 固件说明
+
+            - `eyelash_sofle_central_dongle_oled.uf2`：独立接收器
+            - `eyelash_sofle_peripheral_left_nice_view.uf2`：键盘左手
+            - `eyelash_sofle_peripheral_right_nice_view.uf2`：键盘右手
+            - `settings_reset.uf2`：清除配对与已保存运行时设置
+            - `zmk-sofle-dongle-dya-v4.1.2.zip`：完整固件包
+
+            建议接收器、左右手使用本 Release 同一批次生成的固件，不要与其他分支混刷。升级后如连接异常，请先刷入 Settings Reset，再重新刷入三端固件并完成配对。
+          files: |
+            release/*.uf2
+            zmk-sofle-dongle-dya-v4.1.2.zip
+          fail_on_unmatched_files: true
