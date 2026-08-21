@@ -99,7 +99,7 @@ GitHub Actions 构建完成后，在运行记录的 Artifacts 中下载固件压
 
 | 设置 | 作用 | 范围 |
 | --- | --- | --- |
-| `display_theme` | OLED 主题 | `0`=Classic，`1`=YADS，`2`=BMW Brace |
+| `display_theme` | OLED 主题 | `0`=Classic，`1`=YADS |
 | `key_stats_enabled` | 是否显示按键统计 | 开/关 |
 | `key_stats_x` | 统计模块横坐标 | 0–78 |
 | `key_stats_y` | 统计模块纵坐标 | 0–46 |
@@ -123,7 +123,7 @@ GitHub Actions 构建完成后，在运行记录的 Artifacts 中下载固件压
 
 屏幕旋转、分辨率、`segment-offset`、反色和颜色深度仍由设备树固定，不提供运行时修改，以避免 OLED 控制器参数错误导致乱码。
 
-### 多主题实验分支
+### 双主题实验分支
 
 `4.1-display-themes` 在保留当前 Classic 猫咪主题的基础上增加 YADS 信息主题。通过 DYA Studio 将 `display_theme` 写为 `0` 或 `1` 后立即切换，点击页面顶部的 `Save` 后持久保存。
 
@@ -144,10 +144,6 @@ YADS 主题布局：
 YADS 主题仅显示最近 5 个 HID 字母 `A`–`Z`，不会解析中文输入法最终输出的汉字。它同样可能显示密码中键入的字母；在公共环境使用时可切回 Classic 主题。Classic 主题的按键统计、猫动画和原布局保持不变。
 
 按下任意修饰键时，最近字母会立即清空，随后仅显示该组合键继续输入的字母；组合中的字母或数字键松开后视为快捷键执行完成，显示会再次清空。
-
-### BMW Brace 主题
-
-将 `display_theme` 设置为 `2` 可启用 BMW Brace 主题。主题按照 128×64 单色 OLED 重新绘制草图中的宝马双肾大括号：中央为对称双肾轮廓，两侧为折线括号，底部保留左右横条。实时 WPM 位于左上，左右手电量位于右上，USB/BLE 输出状态位于底部中央，修饰键和当前层级分别位于底部左右。
 
 ## Device Info
 
