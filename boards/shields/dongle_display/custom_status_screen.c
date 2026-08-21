@@ -51,7 +51,7 @@ lv_obj_t *zmk_display_status_screen(void) {
     zmk_widget_key_stats_status_init(&key_stats_status_widget, screen);
     zmk_widget_key_stats_status_set_dashboard(&key_stats_status_widget, true);
     lv_obj_align(zmk_widget_key_stats_status_obj(&key_stats_status_widget),
-                 LV_ALIGN_BOTTOM_MID, 0, -5);
+                 LV_ALIGN_BOTTOM_MID, 0, -3);
 #endif
 
 #if IS_ENABLED(CONFIG_ZMK_DONGLE_DISPLAY_LAYER)
