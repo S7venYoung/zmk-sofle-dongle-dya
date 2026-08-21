@@ -45,19 +45,19 @@ lv_obj_t *zmk_display_status_screen(void) {
     zmk_widget_output_status_init(&output_status_widget, screen);
     zmk_widget_output_status_set_dashboard(&output_status_widget, true);
     zmk_widget_output_status_set_compact(&output_status_widget, true);
-    lv_obj_align(zmk_widget_output_status_obj(&output_status_widget), LV_ALIGN_BOTTOM_LEFT, 35, -5);
+    lv_obj_align(zmk_widget_output_status_obj(&output_status_widget), LV_ALIGN_TOP_MID, 0, 0);
 
 #if IS_ENABLED(CONFIG_ZMK_KEY_STATS)
     zmk_widget_key_stats_status_init(&key_stats_status_widget, screen);
     zmk_widget_key_stats_status_set_dashboard(&key_stats_status_widget, true);
     lv_obj_align(zmk_widget_key_stats_status_obj(&key_stats_status_widget),
-                 LV_ALIGN_BOTTOM_LEFT, 72, -5);
+                 LV_ALIGN_BOTTOM_MID, 0, -5);
 #endif
 
 #if IS_ENABLED(CONFIG_ZMK_DONGLE_DISPLAY_LAYER)
     zmk_widget_layer_status_init(&layer_status_widget, screen);
     zmk_widget_layer_status_set_dashboard(&layer_status_widget, true);
-    lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget), LV_ALIGN_CENTER, 0, -6);
+    lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget), LV_ALIGN_CENTER, 0, -5);
 #endif
 
 #if IS_ENABLED(CONFIG_ZMK_BATTERY)
