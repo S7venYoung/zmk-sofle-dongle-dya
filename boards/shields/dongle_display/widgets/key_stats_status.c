@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <stdio.h>
 #include <zephyr/kernel.h>
 
 #include <zmk/display.h>
@@ -15,22 +14,9 @@
 
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 
-static void format_count(char *buf, size_t len, uint32_t value) {
-    if (value < 1000U) {
-        snprintf(buf, len, "%u", value);
-    } else if (value < 1000000U) {
-        snprintf(buf, len, "%uk", value / 1000U);
-    } else if (value < 1000000000U) {
-        snprintf(buf, len, "%um", value / 1000000U);
-    } else {
-        snprintf(buf, len, "%ub", value / 1000000000U);
-    }
-}
-
 static void set_total(struct zmk_widget_key_stats_status *widget, uint32_t total) {
-    char count[8];
-    format_count(count, sizeof(count), total);
-    lv_label_set_text(widget->total_value_label, count);
+    /* Digits only: no T prefix and no k/m/b suffix. */
+    lv_label_set_text_fmt(widget->total_value_label, "%u", total);
 }
 
 static void key_stats_update_cb(struct zmk_key_stats_changed state) {
@@ -62,18 +48,14 @@ int zmk_widget_key_stats_status_init(
     struct zmk_widget_key_stats_status *widget, lv_obj_t *parent) {
     widget->obj = lv_obj_create(parent);
     lv_obj_remove_style_all(widget->obj);
-    lv_obj_set_size(widget->obj, 38, 8);
+    lv_obj_set_size(widget->obj, 42, 8);
 
-    widget->total_label = lv_label_create(widget->obj);
-    lv_label_set_text(widget->total_label, "T");
-    lv_obj_set_style_text_font(widget->total_label, &lv_font_unscii_8, 0);
-    lv_obj_align(widget->total_label, LV_ALIGN_LEFT_MID, 0, 0);
-
+    widget->total_label = NULL;
     widget->total_value_label = lv_label_create(widget->obj);
-    lv_obj_set_width(widget->total_value_label, 31);
+    lv_obj_set_width(widget->total_value_label, 42);
     lv_obj_set_style_text_font(widget->total_value_label, &lv_font_unscii_8, 0);
-    lv_obj_set_style_text_align(widget->total_value_label, LV_TEXT_ALIGN_RIGHT, 0);
-    lv_obj_align(widget->total_value_label, LV_ALIGN_RIGHT_MID, 0, 0);
+    lv_obj_set_style_text_align(widget->total_value_label, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_align(widget->total_value_label, LV_ALIGN_CENTER, 0, 0);
 
     widget->today_label = NULL;
     widget->today_value_label = NULL;
