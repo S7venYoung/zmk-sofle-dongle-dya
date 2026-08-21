@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: MIT
  */
 
+#include <zephyr/sys/util.h>
+
 #include "bmw_grille.h"
 
 static void configure_outline(lv_obj_t *line, lv_point_precise_t *points, size_t count) {
