@@ -24,7 +24,6 @@ static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 struct output_status_state {
     struct zmk_endpoint_instance selected;
     enum zmk_transport preferred;
-    int profile;
     bool usb_ready;
 };
 
@@ -33,11 +32,6 @@ static struct output_status_state get_state(const zmk_event_t *eh) {
     return (struct output_status_state) {
         .selected = zmk_endpoint_get_selected(),
         .preferred = zmk_endpoint_get_preferred_transport(),
-#if IS_ENABLED(CONFIG_ZMK_BLE)
-        .profile = zmk_ble_active_profile_index(),
-#else
-        .profile = 0,
-#endif
         .usb_ready = zmk_usb_is_hid_ready(),
     };
 }
@@ -51,14 +45,13 @@ static void set_status(struct zmk_widget_output_status *widget,
         transport = state.preferred;
     }
 
+    /* BMW theme shows exactly one compact transport indicator. */
     if (transport == ZMK_TRANSPORT_USB) {
-        lv_label_set_text(label, state.usb_ready ? "USB" : "USB-");
+        lv_label_set_text(label, "USB");
     } else if (transport == ZMK_TRANSPORT_BLE) {
-        lv_label_set_text_fmt(label, state.selected.transport == ZMK_TRANSPORT_BLE ? "BLE%d"
-                                                                                  : "BLE%d-",
-                              state.profile + 1);
+        lv_label_set_text(label, "BT");
     } else {
-        lv_label_set_text(label, "---");
+        lv_label_set_text(label, "");
     }
 }
 
@@ -90,6 +83,7 @@ int zmk_widget_output_status_init(struct zmk_widget_output_status *widget, lv_ob
 
     sys_slist_append(&widgets, &widget->node);
     widget_output_status_init();
+    set_status(widget, get_state(NULL));
     return 0;
 }
 
