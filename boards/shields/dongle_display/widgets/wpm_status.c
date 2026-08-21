@@ -110,13 +110,12 @@ static void set_wpm(struct zmk_widget_wpm_status *widget, struct wpm_status_stat
     if (widget->bmw_needle != NULL && widget->display_mode >= 2) {
         int level = CLAMP(value, 0, 120);
         bool right = widget->display_mode == 3;
-        /* The BMW scale runs from the lower inner end, through the outer
-         * elbow, to the upper inner end. The needle therefore follows the
-         * same broken scale instead of behaving like a circular gauge. */
-        lv_point_precise_t low = right ? (lv_point_precise_t){14, 36}
-                                       : (lv_point_precise_t){28, 36};
-        lv_point_precise_t middle = right ? (lv_point_precise_t){36, 21}
-                                          : (lv_point_precise_t){6, 21};
+        /* Follow the full brace from its lower inner tip, across the lower
+         * outer elbow and towards the upper inner tip. */
+        lv_point_precise_t low = right ? (lv_point_precise_t){14, 38}
+                                       : (lv_point_precise_t){28, 38};
+        lv_point_precise_t middle = right ? (lv_point_precise_t){35, 25}
+                                          : (lv_point_precise_t){7, 25};
         lv_point_precise_t high = right ? (lv_point_precise_t){4, 2}
                                         : (lv_point_precise_t){38, 2};
         lv_point_precise_t target;
@@ -233,10 +232,16 @@ void zmk_widget_wpm_status_set_bmw(struct zmk_widget_wpm_status *widget, bool en
         lv_obj_add_flag(widget->gauge_ticks[i], LV_OBJ_FLAG_HIDDEN);
     }
 
-    lv_point_precise_t left_outline[3] = {{38, 2}, {6, 21}, {28, 36}};
-    lv_point_precise_t left_ticks[6][2] = {
-        {{33, 5}, {29, 6}}, {{27, 9}, {23, 10}}, {{21, 13}, {17, 14}},
-        {{15, 17}, {11, 18}}, {{10, 25}, {14, 26}}, {{17, 30}, {21, 31}},
+    /* Five vertices reproduce the tall automotive-brace silhouette from the
+     * sketch while preserving a clear centre for the active layer. */
+    lv_point_precise_t left_outline[5] = {
+        {38, 2}, {8, 15}, {27, 21}, {7, 29}, {28, 38},
+    };
+    lv_point_precise_t left_ticks[8][2] = {
+        {{33, 4}, {29, 6}},   {{27, 7}, {23, 9}},
+        {{20, 10}, {16, 12}}, {{13, 13}, {10, 15}},
+        {{12, 25}, {16, 26}}, {{17, 28}, {21, 29}},
+        {{22, 31}, {25, 32}}, {{25, 35}, {28, 36}},
     };
     for (size_t p = 0; p < ARRAY_SIZE(widget->bmw_outline_points); p++) {
         widget->bmw_outline_points[p].x = right_side ? 42 - left_outline[p].x
