@@ -53,9 +53,9 @@ static struct wpm_status_state get_state(const zmk_event_t *eh) {
 
 static lv_point_precise_t brace_target(int value, bool right) {
     int level = CLAMP(value, 0, BMW_WPM_MAX);
-    lv_point_precise_t low = {22, 40};
-    lv_point_precise_t middle = {42, 24};
-    lv_point_precise_t high = {22, 6};
+    lv_point_precise_t low = {22, 53};
+    lv_point_precise_t middle = {42, 32};
+    lv_point_precise_t high = {22, 11};
     lv_point_precise_t target;
 
     if (level <= BMW_WPM_MAX / 2) {
@@ -108,7 +108,7 @@ void zmk_widget_wpm_status_refresh(struct zmk_widget_wpm_status *widget) {
 
 static lv_obj_t *create_value_label(lv_obj_t *parent, lv_coord_t x) {
     lv_obj_t *label = lv_label_create(parent);
-    lv_obj_set_pos(label, x, 20);
+    lv_obj_set_pos(label, x, 28);
     lv_obj_set_width(label, 20);
     lv_obj_set_style_text_font(label, &lv_font_unscii_8, 0);
     lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
@@ -118,7 +118,7 @@ static lv_obj_t *create_value_label(lv_obj_t *parent, lv_coord_t x) {
 int zmk_widget_wpm_status_init(struct zmk_widget_wpm_status *widget, lv_obj_t *parent) {
     widget->obj = lv_obj_create(parent);
     lv_obj_remove_style_all(widget->obj);
-    lv_obj_set_size(widget->obj, 128, 48);
+    lv_obj_set_size(widget->obj, 128, 64);
 
     widget->background = lv_img_create(widget->obj);
     lv_img_set_src(widget->background, &bmw_brace_image);
@@ -127,14 +127,14 @@ int zmk_widget_wpm_status_init(struct zmk_widget_wpm_status *widget, lv_obj_t *p
     widget->current_value = create_value_label(widget->obj, 5);
     widget->peak_value = create_value_label(widget->obj, 103);
 
-    widget->current_points[0] = (lv_point_precise_t){23, 24};
-    widget->current_points[1] = (lv_point_precise_t){22, 40};
+    widget->current_points[0] = (lv_point_precise_t){23, 32};
+    widget->current_points[1] = (lv_point_precise_t){22, 53};
     widget->current_needle = lv_line_create(widget->obj);
     lv_line_set_points(widget->current_needle, widget->current_points, 2);
     lv_obj_set_style_line_width(widget->current_needle, 1, 0);
 
-    widget->peak_points[0] = (lv_point_precise_t){104, 24};
-    widget->peak_points[1] = (lv_point_precise_t){105, 40};
+    widget->peak_points[0] = (lv_point_precise_t){104, 32};
+    widget->peak_points[1] = (lv_point_precise_t){105, 53};
     widget->peak_needle = lv_line_create(widget->obj);
     lv_line_set_points(widget->peak_needle, widget->peak_points, 2);
     lv_obj_set_style_line_width(widget->peak_needle, 1, 0);
