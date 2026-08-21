@@ -64,6 +64,10 @@ static void set_status(struct zmk_widget_output_status *widget,
     if (transport == ZMK_TRANSPORT_NONE) {
         transport = state.preferred;
     }
+    /* USB is the physical default when the endpoint has not reported yet. */
+    if (transport == ZMK_TRANSPORT_NONE) {
+        transport = ZMK_TRANSPORT_USB;
+    }
 
     lv_obj_add_flag(usb, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(bt, LV_OBJ_FLAG_HIDDEN);
