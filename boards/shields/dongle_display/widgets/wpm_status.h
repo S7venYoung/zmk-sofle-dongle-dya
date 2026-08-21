@@ -20,9 +20,9 @@ struct zmk_widget_wpm_status
     lv_obj_t *needle;
     lv_point_precise_t needle_points[2];
     lv_obj_t *bmw_outline;
-    lv_point_precise_t bmw_outline_points[3];
-    lv_obj_t *bmw_ticks[6];
-    lv_point_precise_t bmw_tick_points[6][2];
+    lv_point_precise_t bmw_outline_points[5];
+    lv_obj_t *bmw_ticks[8];
+    lv_point_precise_t bmw_tick_points[8][2];
     lv_obj_t *bmw_needle;
     lv_point_precise_t bmw_needle_points[2];
     uint8_t display_mode;
