@@ -14,8 +14,11 @@
 
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 
-static const char *layer_code(void) {
-    uint8_t index = zmk_keymap_highest_layer_active();
+struct layer_status_state {
+    uint8_t index;
+};
+
+static const char *layer_code(uint8_t index) {
     if (index == 1) {
         return "N";
     }
@@ -25,24 +28,26 @@ static const char *layer_code(void) {
     return "D";
 }
 
-static void refresh_all(void) {
+static struct layer_status_state get_state(const zmk_event_t *eh) {
+    ARG_UNUSED(eh);
+    return (struct layer_status_state) {
+        .index = zmk_keymap_highest_layer_active(),
+    };
+}
+
+static void layer_status_update_cb(struct layer_status_state state) {
     struct zmk_widget_layer_status *widget;
     SYS_SLIST_FOR_EACH_CONTAINER(&widgets, widget, node) {
-        lv_label_set_text(widget->obj, layer_code());
+        lv_label_set_text(widget->obj, layer_code(state.index));
     }
 }
 
-static int layer_status_update_cb(const zmk_event_t *eh) {
-    ARG_UNUSED(eh);
-    refresh_all();
-    return ZMK_EV_EVENT_BUBBLE;
-}
-
-ZMK_LISTENER(widget_layer_status, layer_status_update_cb);
+ZMK_DISPLAY_WIDGET_LISTENER(widget_layer_status, struct layer_status_state,
+                            layer_status_update_cb, get_state)
 ZMK_SUBSCRIPTION(widget_layer_status, zmk_layer_state_changed);
 
 void zmk_widget_layer_status_refresh(struct zmk_widget_layer_status *widget) {
-    lv_label_set_text(widget->obj, layer_code());
+    lv_label_set_text(widget->obj, layer_code(zmk_keymap_highest_layer_active()));
 }
 
 void zmk_widget_layer_status_set_dashboard(struct zmk_widget_layer_status *widget, bool enabled) {
