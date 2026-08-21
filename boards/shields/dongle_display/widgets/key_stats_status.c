@@ -16,7 +16,7 @@ static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 
 static void set_total(struct zmk_widget_key_stats_status *widget, uint32_t total) {
     /* Digits only: no T prefix and no k/m/b suffix. */
-    lv_label_set_text_fmt(widget->total_value_label, "%u", total);
+    lv_label_set_text_fmt(widget->total_value_label, "%lu", (unsigned long)total);
 }
 
 static void key_stats_update_cb(struct zmk_key_stats_changed state) {
