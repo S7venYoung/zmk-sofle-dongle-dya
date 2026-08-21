@@ -19,12 +19,32 @@
 
 #include "output_status.h"
 
+/* The default 9x14 transport glyphs, with the BMW theme's white-on-black palette. */
+static const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST uint8_t sym_usb_map[] = {
+    0,0,0,0, 255,255,255,255,
+    0x7f,0x00,0x41,0x00,0x55,0x00,0x41,0x00,0xff,0x80,0x80,0x80,0x80,0x80,
+    0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0xff,0x80,
+};
+static const lv_img_dsc_t sym_usb = {
+    .header.cf = LV_COLOR_FORMAT_I1, .header.w = 9, .header.h = 14,
+    .data_size = 36, .data = sym_usb_map,
+};
+
+static const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST uint8_t sym_bt_map[] = {
+    0,0,0,0, 255,255,255,255,
+    0x3e,0x00,0x67,0x00,0xe3,0x80,0xe9,0x80,0x8c,0x80,0xc9,0x80,0xe3,0x80,
+    0xe3,0x80,0xc9,0x80,0x8c,0x80,0xe9,0x80,0xe3,0x80,0x67,0x00,0x3e,0x00,
+};
+static const lv_img_dsc_t sym_bt = {
+    .header.cf = LV_COLOR_FORMAT_I1, .header.w = 9, .header.h = 14,
+    .data_size = 36, .data = sym_bt_map,
+};
+
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 
 struct output_status_state {
     struct zmk_endpoint_instance selected;
     enum zmk_transport preferred;
-    bool usb_ready;
 };
 
 static struct output_status_state get_state(const zmk_event_t *eh) {
@@ -32,26 +52,26 @@ static struct output_status_state get_state(const zmk_event_t *eh) {
     return (struct output_status_state) {
         .selected = zmk_endpoint_get_selected(),
         .preferred = zmk_endpoint_get_preferred_transport(),
-        .usb_ready = zmk_usb_is_hid_ready(),
     };
 }
 
 static void set_status(struct zmk_widget_output_status *widget,
                        struct output_status_state state) {
-    lv_obj_t *label = lv_obj_get_child(widget->obj, 0);
+    lv_obj_t *usb = lv_obj_get_child(widget->obj, 0);
+    lv_obj_t *bt = lv_obj_get_child(widget->obj, 1);
     enum zmk_transport transport = state.selected.transport;
 
     if (transport == ZMK_TRANSPORT_NONE) {
         transport = state.preferred;
     }
 
-    /* BMW theme shows exactly one compact transport indicator. */
+    lv_obj_add_flag(usb, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(bt, LV_OBJ_FLAG_HIDDEN);
+
     if (transport == ZMK_TRANSPORT_USB) {
-        lv_label_set_text(label, "USB");
+        lv_obj_clear_flag(usb, LV_OBJ_FLAG_HIDDEN);
     } else if (transport == ZMK_TRANSPORT_BLE) {
-        lv_label_set_text(label, "BT");
-    } else {
-        lv_label_set_text(label, "");
+        lv_obj_clear_flag(bt, LV_OBJ_FLAG_HIDDEN);
     }
 }
 
@@ -73,13 +93,15 @@ ZMK_SUBSCRIPTION(widget_output_status, zmk_ble_active_profile_changed);
 int zmk_widget_output_status_init(struct zmk_widget_output_status *widget, lv_obj_t *parent) {
     widget->obj = lv_obj_create(parent);
     lv_obj_remove_style_all(widget->obj);
-    lv_obj_set_size(widget->obj, 24, 8);
+    lv_obj_set_size(widget->obj, 12, 14);
 
-    lv_obj_t *label = lv_label_create(widget->obj);
-    lv_obj_set_width(label, 24);
-    lv_obj_set_style_text_font(label, &lv_font_unscii_8, 0);
-    lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_t *usb = lv_img_create(widget->obj);
+    lv_img_set_src(usb, &sym_usb);
+    lv_obj_align(usb, LV_ALIGN_CENTER, 0, 0);
+
+    lv_obj_t *bt = lv_img_create(widget->obj);
+    lv_img_set_src(bt, &sym_bt);
+    lv_obj_align(bt, LV_ALIGN_CENTER, 0, 0);
 
     sys_slist_append(&widgets, &widget->node);
     widget_output_status_init();
@@ -97,6 +119,6 @@ void zmk_widget_output_status_set_compact(struct zmk_widget_output_status *widge
 }
 
 void zmk_widget_output_status_set_dashboard(struct zmk_widget_output_status *widget, bool enabled) {
-    ARG_UNUSED(widget);
     ARG_UNUSED(enabled);
+    set_status(widget, get_state(NULL));
 }
