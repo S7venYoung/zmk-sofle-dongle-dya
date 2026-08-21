@@ -1,121 +1,62 @@
 /*
- * Copyright (c) 2020 The ZMK Contributors
- *
+ * Copyright (c) 2026 S7venYoung
  * SPDX-License-Identifier: MIT
  */
 
-#include <string.h>
 #include <zephyr/kernel.h>
-#include <zephyr/logging/log.h>
-LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #include <zmk/display.h>
-#include <zmk/display/widgets/layer_status.h>
-#include <zmk/events/layer_state_changed.h>
 #include <zmk/event_manager.h>
-#include <zmk/endpoints.h>
+#include <zmk/events/layer_state_changed.h>
 #include <zmk/keymap.h>
 
-#if IS_ENABLED(CONFIG_ZMK_CUSTOM_SETTINGS)
-#include <zmk/display_settings.h>
-#endif
+#include "layer_status.h"
 
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
-static bool dashboard_mode;
 
-struct layer_status_state {
-    uint8_t index;
-    const char *label;
-};
+static const char *layer_code(void) {
+    uint8_t index = zmk_keymap_highest_layer_active();
+    if (index == 1) {
+        return "N";
+    }
+    if (index == 2) {
+        return "R";
+    }
+    return "D";
+}
 
-static void set_layer_symbol(lv_obj_t *label, struct layer_status_state state) {
-    if (dashboard_mode) {
-        const char *text = "D";
-        if (state.index == 1) {
-            text = "N";
-        } else if (state.index == 2) {
-            text = "R";
-        }
-        lv_label_set_text(label, text);
-    } else if (state.label == NULL) {
-        char text[7] = {};
-
-        sprintf(text, "%i", state.index);
-
-        lv_label_set_text(label, text);
-    } else {
-        char text[13] = {};
-
-        snprintf(text, sizeof(text), "%s", state.label);
-
-        lv_label_set_text(label, text);
+static void refresh_all(void) {
+    struct zmk_widget_layer_status *widget;
+    SYS_SLIST_FOR_EACH_CONTAINER(&widgets, widget, node) {
+        lv_label_set_text(widget->obj, layer_code());
     }
 }
 
-static void layer_status_update_cb(struct layer_status_state state) {
-    struct zmk_widget_layer_status *widget;
-    SYS_SLIST_FOR_EACH_CONTAINER(&widgets, widget, node) { set_layer_symbol(widget->obj, state); }
+static int layer_status_update_cb(const zmk_event_t *eh) {
+    ARG_UNUSED(eh);
+    refresh_all();
+    return ZMK_EV_EVENT_BUBBLE;
 }
 
-static struct layer_status_state layer_status_get_state(const zmk_event_t *eh) {
-    uint8_t index = zmk_keymap_highest_layer_active();
-    return (struct layer_status_state) {
-        .index = index,
-        .label = zmk_keymap_layer_name(index)
-    };
-}
-
-ZMK_DISPLAY_WIDGET_LISTENER(widget_layer_status, struct layer_status_state, layer_status_update_cb,
-                            layer_status_get_state)
-
+ZMK_LISTENER(widget_layer_status, layer_status_update_cb);
 ZMK_SUBSCRIPTION(widget_layer_status, zmk_layer_state_changed);
 
 void zmk_widget_layer_status_refresh(struct zmk_widget_layer_status *widget) {
-    if (dashboard_mode) {
-        lv_obj_set_width(widget->obj, 20);
-        lv_obj_set_style_text_align(widget->obj, LV_TEXT_ALIGN_CENTER, 0);
-        lv_obj_set_style_text_font(widget->obj, &lv_font_unscii_16, 0);
-        return;
-    }
-    /* Dashboard themes use the large font. Always restore the native font
-     * before applying the normal theme's width/alignment settings. */
-    lv_obj_set_style_text_font(widget->obj, LV_FONT_DEFAULT, 0);
-#if IS_ENABLED(CONFIG_ZMK_CUSTOM_SETTINGS)
-    lv_obj_set_width(widget->obj, zmk_display_settings_layer_width());
-    int32_t alignment = zmk_display_settings_layer_alignment();
-    if (alignment == 2) {
-        lv_obj_set_style_text_align(widget->obj, LV_TEXT_ALIGN_RIGHT, 0);
-    } else if (alignment == 1) {
-        lv_obj_set_style_text_align(widget->obj, LV_TEXT_ALIGN_CENTER, 0);
-    } else {
-        lv_obj_set_style_text_align(widget->obj, LV_TEXT_ALIGN_LEFT, 0);
-    }
-#else
-    lv_obj_set_width(widget->obj, CONFIG_ZMK_DONGLE_DISPLAY_LAYER_NAME_SCROLL_WIDTH);
-    if (strcmp(CONFIG_ZMK_DONGLE_DISPLAY_LAYER_TEXT_ALIGN, "right") == 0) {
-        lv_obj_set_style_text_align(widget->obj, LV_TEXT_ALIGN_RIGHT, 0);
-    } else if (strcmp(CONFIG_ZMK_DONGLE_DISPLAY_LAYER_TEXT_ALIGN, "center") == 0) {
-        lv_obj_set_style_text_align(widget->obj, LV_TEXT_ALIGN_CENTER, 0);
-    } else {
-        lv_obj_set_style_text_align(widget->obj, LV_TEXT_ALIGN_LEFT, 0);
-    }
-#endif
+    lv_label_set_text(widget->obj, layer_code());
 }
 
-void zmk_widget_layer_status_set_dashboard(struct zmk_widget_layer_status *widget, bool enabled)
-{
-    dashboard_mode = enabled;
+void zmk_widget_layer_status_set_dashboard(struct zmk_widget_layer_status *widget, bool enabled) {
+    ARG_UNUSED(enabled);
     zmk_widget_layer_status_refresh(widget);
-    layer_status_update_cb(layer_status_get_state(NULL));
 }
 
 int zmk_widget_layer_status_init(struct zmk_widget_layer_status *widget, lv_obj_t *parent) {
     widget->obj = lv_label_create(parent);
-    lv_label_set_long_mode(widget->obj, LV_LABEL_LONG_SCROLL_CIRCULAR);
-    zmk_widget_layer_status_refresh(widget);
+    lv_obj_set_width(widget->obj, 20);
+    lv_obj_set_style_text_align(widget->obj, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_set_style_text_font(widget->obj, &lv_font_unscii_16, 0);
 
     sys_slist_append(&widgets, &widget->node);
-
     widget_layer_status_init();
     return 0;
 }
