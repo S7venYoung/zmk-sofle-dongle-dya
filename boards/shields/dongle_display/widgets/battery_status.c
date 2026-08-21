@@ -150,12 +150,10 @@ static void set_battery_symbol(uint8_t object_index, struct battery_state state)
 
     lv_obj_add_flag(bar_track, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(bar_fill, LV_OBJ_FLAG_HIDDEN);
-    /* Keep every Classic percentage in the same fixed-width column. Content-sized
-     * labels plus leading spaces can shift between rows in LVGL. */
-    lv_obj_set_width(label, 30);
-    lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_RIGHT, 0);
+    lv_obj_set_width(label, LV_SIZE_CONTENT);
+    lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_LEFT, 0);
     draw_battery(symbol, state.level, state.usb_present);
-    lv_label_set_text_fmt(label, "%u%%", state.level);
+    lv_label_set_text_fmt(label, "%4u%% ", state.level);
 
     if (state.level > 0 || state.usb_present) {
         lv_obj_clear_flag(symbol, LV_OBJ_FLAG_HIDDEN);
@@ -224,6 +222,12 @@ void zmk_widget_dongle_battery_status_refresh(struct zmk_widget_dongle_battery_s
         lv_obj_align(battery_objects[i].symbol, LV_ALIGN_TOP_RIGHT, 0, i * 10);
         lv_obj_align_to(battery_objects[i].label, battery_objects[i].symbol,
                         LV_ALIGN_OUT_LEFT_MID, 0, 0);
+    }
+
+    /* Preserve the first row's original position and align only the second
+     * percentage label's right edge with it. */
+    if (ZMK_SPLIT_BLE_PERIPHERAL_COUNT + SOURCE_OFFSET >= 2) {
+        lv_obj_set_x(battery_objects[1].label, lv_obj_get_x(battery_objects[0].label));
     }
 }
 
