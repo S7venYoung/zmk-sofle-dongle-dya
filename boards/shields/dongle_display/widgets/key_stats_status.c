@@ -48,11 +48,11 @@ int zmk_widget_key_stats_status_init(
     struct zmk_widget_key_stats_status *widget, lv_obj_t *parent) {
     widget->obj = lv_obj_create(parent);
     lv_obj_remove_style_all(widget->obj);
-    lv_obj_set_size(widget->obj, 42, 8);
+    lv_obj_set_size(widget->obj, 32, 8);
 
     widget->total_label = NULL;
     widget->total_value_label = lv_label_create(widget->obj);
-    lv_obj_set_width(widget->total_value_label, 42);
+    lv_obj_set_width(widget->total_value_label, 32);
     lv_obj_set_style_text_font(widget->total_value_label, &lv_font_unscii_8, 0);
     lv_obj_set_style_text_align(widget->total_value_label, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_align(widget->total_value_label, LV_ALIGN_CENTER, 0, 0);
