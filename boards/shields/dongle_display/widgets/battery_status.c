@@ -150,7 +150,12 @@ static void set_battery_symbol(uint8_t object_index, struct battery_state state)
 
     lv_obj_add_flag(bar_track, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(bar_fill, LV_OBJ_FLAG_HIDDEN);
-    /* Keep every Classic percentage in the same fixed-width column. Content-sized\n     * labels plus leading spaces can shift between rows in LVGL. */\n    lv_obj_set_width(label, 30);\n    lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_RIGHT, 0);\n    draw_battery(symbol, state.level, state.usb_present);\n    lv_label_set_text_fmt(label, "%u%%", state.level);
+    /* Keep every Classic percentage in the same fixed-width column. Content-sized
+     * labels plus leading spaces can shift between rows in LVGL. */
+    lv_obj_set_width(label, 30);
+    lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_RIGHT, 0);
+    draw_battery(symbol, state.level, state.usb_present);
+    lv_label_set_text_fmt(label, "%u%%", state.level);
 
     if (state.level > 0 || state.usb_present) {
         lv_obj_clear_flag(symbol, LV_OBJ_FLAG_HIDDEN);
