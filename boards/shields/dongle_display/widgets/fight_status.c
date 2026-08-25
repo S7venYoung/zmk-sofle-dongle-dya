@@ -27,7 +27,7 @@
 static atomic_t heat[2];
 static atomic_t last_press[2];
 static LV_ATTRIBUTE_MEM_ALIGN uint8_t framebuffer[IMAGE_BYTES];
-static lv_img_dsc_t fight_image = {
+static lv_image_dsc_t fight_image = {
     .header.cf = LV_COLOR_FORMAT_I1,
     .header.w = DISPLAY_WIDTH,
     .header.h = DISPLAY_HEIGHT,
@@ -145,8 +145,8 @@ int zmk_widget_fight_status_init(struct zmk_widget_fight_status *widget, lv_obj_
     lv_obj_remove_style_all(widget->obj);
     lv_obj_set_size(widget->obj, DISPLAY_WIDTH, DISPLAY_HEIGHT);
 
-    widget->image = lv_img_create(widget->obj);
-    lv_img_set_src(widget->image, &fight_image);
+    widget->image = lv_image_create(widget->obj);
+    lv_image_set_src(widget->image, &fight_image);
     lv_obj_align(widget->image, LV_ALIGN_TOP_LEFT, 0, 0);
 
     widget->frames[0] = 0;
