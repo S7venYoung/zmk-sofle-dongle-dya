@@ -73,13 +73,13 @@ static lv_obj_t *create_track(lv_obj_t *parent) {
     lv_obj_remove_style_all(track);
     lv_obj_set_size(track, BMW_BAR_WIDTH, BMW_BAR_HEIGHT);
     lv_obj_set_style_bg_opa(track, LV_OPA_TRANSP, 0);
-    lv_obj_set_style_border_color(track, lv_color_black(), 0);
+    lv_obj_set_style_border_color(track, lv_color_white(), 0);
     lv_obj_set_style_border_width(track, 1, 0);
     lv_obj_set_style_radius(track, 0, 0);
 
     lv_obj_t *fill = lv_obj_create(track);
     lv_obj_remove_style_all(fill);
-    lv_obj_set_style_bg_color(fill, lv_color_black(), 0);
+    lv_obj_set_style_bg_color(fill, lv_color_white(), 0);
     lv_obj_set_style_bg_opa(fill, LV_OPA_COVER, 0);
     lv_obj_set_size(fill, 1, BMW_BAR_HEIGHT);
     return track;
@@ -106,22 +106,4 @@ int zmk_widget_dongle_battery_status_init(
 lv_obj_t *zmk_widget_dongle_battery_status_obj(
     struct zmk_widget_dongle_battery_status *widget) {
     return widget->obj;
-}
-
-void zmk_widget_dongle_battery_status_set_split_layout(
-    struct zmk_widget_dongle_battery_status *widget, bool enabled) {
-    ARG_UNUSED(enabled);
-    zmk_widget_dongle_battery_status_refresh(widget);
-}
-
-void zmk_widget_dongle_battery_status_set_dashboard_layout(
-    struct zmk_widget_dongle_battery_status *widget, bool enabled) {
-    ARG_UNUSED(enabled);
-    zmk_widget_dongle_battery_status_refresh(widget);
-}
-
-void zmk_widget_dongle_battery_status_set_bmw_layout(
-    struct zmk_widget_dongle_battery_status *widget, bool enabled) {
-    ARG_UNUSED(enabled);
-    zmk_widget_dongle_battery_status_refresh(widget);
 }
