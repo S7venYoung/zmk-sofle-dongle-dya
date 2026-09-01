@@ -136,7 +136,7 @@ static void render(struct zmk_widget_fight_status *widget) {
 }
 
 static void timer_cb(lv_timer_t *timer) {
-    struct zmk_widget_fight_status *widget = timer->user_data;
+    struct zmk_widget_fight_status *widget = lv_timer_get_user_data(timer);
     render(widget);
 }
 
