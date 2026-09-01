@@ -117,9 +117,8 @@ static void render(struct zmk_widget_fight_status *widget) {
     enum fight_action right_action = action_for_heat(right_heat);
 
     memset(framebuffer + IMAGE_PALETTE_BYTES, 0, IMAGE_BYTES - IMAGE_PALETTE_BYTES);
-    /* SH1106 panel is lit for palette index 0: black background, white sprites. */
-    framebuffer[0] = framebuffer[1] = framebuffer[2] = framebuffer[3] = 0xff;
-    framebuffer[4] = framebuffer[5] = framebuffer[6] = framebuffer[7] = 0;
+    framebuffer[0] = framebuffer[1] = framebuffer[2] = framebuffer[3] = 0;
+    framebuffer[4] = framebuffer[5] = framebuffer[6] = framebuffer[7] = 0xff;
 
     if (left_action != FIGHT_ACTION_IDLE || ++widget->idle_divider >= 3) {
         widget->frames[0] = (widget->frames[0] + 1) & 3U;
@@ -131,9 +130,8 @@ static void render(struct zmk_widget_fight_status *widget) {
         widget->idle_divider = 0;
     }
 
-    /* Fighters face each other: left sprite faces right, right sprite faces left. */
-    draw_frame(fight_asset_frame(left_action, widget->frames[0]), false);
-    draw_frame(fight_asset_frame(right_action, widget->frames[1]), true);
+    draw_frame(fight_asset_frame(left_action, widget->frames[0]), true);
+    draw_frame(fight_asset_frame(right_action, widget->frames[1]), false);
     lv_obj_invalidate(widget->image);
 }
 
