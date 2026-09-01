@@ -11,6 +11,7 @@ struct fight_player_state {
     uint8_t action;
     uint8_t frame;
     uint8_t wpm;
+    uint8_t center_offset;
 };
 
 struct zmk_widget_fight_status {

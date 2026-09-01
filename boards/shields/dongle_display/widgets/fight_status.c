@@ -108,17 +108,17 @@ static void set_pixel(uint8_t x, uint8_t y) {
     }
 }
 
-static void draw_frame(const struct fight_frame *frame, bool mirror) {
+static void draw_frame(const struct fight_frame *frame, bool mirror, int8_t x_offset) {
     for (uint16_t index = 0; index < frame->count; index++) {
         const struct fight_span *span = &frame->spans[index];
         if (mirror) {
             for (int x = DISPLAY_WIDTH - 1 - span->x1;
                  x <= DISPLAY_WIDTH - 1 - span->x0; x++) {
-                set_pixel(x, span->y);
+                set_pixel(x + x_offset, span->y);
             }
         } else {
             for (int x = span->x0; x <= span->x1; x++) {
-                set_pixel(x, span->y);
+                set_pixel(x + x_offset, span->y);
             }
         }
     }
@@ -141,20 +141,26 @@ static void render(struct zmk_widget_fight_status *widget) {
     uint32_t now = k_uptime_get_32();
     for (uint8_t side = 0; side < 2; side++) {
         widget->players[side].wpm = side_wpm(side, now);
+        uint8_t target_offset = MIN(widget->players[side].wpm / 7U, 10U);
+        if (widget->players[side].center_offset < target_offset) {
+            widget->players[side].center_offset++;
+        } else if (widget->players[side].center_offset > target_offset) {
+            widget->players[side].center_offset--;
+        }
         advance_player(&widget->players[side], (enum fight_side)side,
                        action_for_wpm(widget->players[side].wpm));
     }
 
     memset(framebuffer + IMAGE_PALETTE_BYTES, 0, IMAGE_BYTES - IMAGE_PALETTE_BYTES);
-    framebuffer[0] = framebuffer[1] = framebuffer[2] = framebuffer[3] = 0;
-    framebuffer[4] = framebuffer[5] = framebuffer[6] = framebuffer[7] = 0xff;
+    framebuffer[0] = framebuffer[1] = framebuffer[2] = framebuffer[3] = 0xff;
+    framebuffer[4] = framebuffer[5] = framebuffer[6] = framebuffer[7] = 0;
 
     const struct fight_player_state *left = &widget->players[0];
     const struct fight_player_state *right = &widget->players[1];
     draw_frame(fight_asset_frame(FIGHT_SIDE_LEFT, (enum fight_action)left->action, left->frame),
-               true);
+               true, left->center_offset);
     draw_frame(fight_asset_frame(FIGHT_SIDE_RIGHT, (enum fight_action)right->action, right->frame),
-               false);
+               false, -(int8_t)right->center_offset);
     lv_obj_invalidate(widget->image);
 }
 
@@ -175,6 +181,7 @@ int zmk_widget_fight_status_init(struct zmk_widget_fight_status *widget, lv_obj_
             .action = FIGHT_ACTION_IDLE,
             .frame = side,
             .wpm = 0,
+            .center_offset = 0,
         };
     }
     widget->timer = lv_timer_create(timer_cb, FIGHT_TICK_MS, widget);
