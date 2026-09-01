@@ -15,6 +15,14 @@ manifest:
     - name: englmaxi
       url-base: https://github.com/englmaxi
   projects:
+    - name: zmk-dongle-display
+      url: https://github.com/hitsmaxft/zmk-dongle-display
+      revision: d501cbffa0ff758e9e495bbe0f31d8af6ddb8dba
+      path: zmodules/zmk-dongle-display
+    - name: zmk-dongle-fighter-theme
+      url: https://github.com/hitsmaxft/zmk-dongle-fighter-theme
+      revision: 7f59dc76d56a054e81b6dd905d69fd5f0d360265
+      path: zmodules/zmk-dongle-fighter-theme
     - name: mario-peripheral-animation
       remote: gpeye
       revision: main
