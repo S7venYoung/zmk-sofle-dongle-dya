@@ -32,6 +32,7 @@
 #define HUD_BAR_Y 2
 #define FIGHTER_MOVE_STEP 3U
 #define FIGHTER_MAX_OFFSET 14U
+#define FIGHTER_ENGAGE_OFFSET 18U
 #define FIGHTER_ENGAGE_TIMEOUT_MS 1500U
 
 struct side_press_history {
@@ -214,7 +215,7 @@ static void render(struct zmk_widget_fight_status *widget) {
                    now - last_fight_press <= FIGHTER_ENGAGE_TIMEOUT_MS;
     for (uint8_t side = 0; side < 2; side++) {
         widget->players[side].wpm = side_wpm(side, now);
-        uint8_t target_offset = engaged ? FIGHTER_MAX_OFFSET
+        uint8_t target_offset = engaged ? FIGHTER_ENGAGE_OFFSET
                                         : MIN(widget->players[side].wpm / 5U,
                                               FIGHTER_MAX_OFFSET);
         if (engaged) {
