@@ -30,6 +30,8 @@
 #define WPM_FAST_THRESHOLD 70
 #define HUD_BAR_WIDTH 46
 #define HUD_BAR_Y 2
+#define FIGHTER_MOVE_STEP 3U
+#define FIGHTER_MAX_OFFSET 14U
 
 struct side_press_history {
     uint32_t timestamps[WPM_PRESS_HISTORY];
@@ -205,11 +207,16 @@ static void render(struct zmk_widget_fight_status *widget) {
     uint32_t now = k_uptime_get_32();
     for (uint8_t side = 0; side < 2; side++) {
         widget->players[side].wpm = side_wpm(side, now);
-        uint8_t target_offset = MIN(widget->players[side].wpm / 7U, 10U);
+        uint8_t target_offset = MIN(widget->players[side].wpm / 5U, FIGHTER_MAX_OFFSET);
         if (widget->players[side].center_offset < target_offset) {
-            widget->players[side].center_offset++;
+            widget->players[side].center_offset =
+                MIN(widget->players[side].center_offset + FIGHTER_MOVE_STEP, target_offset);
         } else if (widget->players[side].center_offset > target_offset) {
-            widget->players[side].center_offset--;
+            if (widget->players[side].center_offset - target_offset <= FIGHTER_MOVE_STEP) {
+                widget->players[side].center_offset = target_offset;
+            } else {
+                widget->players[side].center_offset -= FIGHTER_MOVE_STEP;
+            }
         }
         advance_player(&widget->players[side], (enum fight_side)side,
                        action_for_wpm(widget->players[side].wpm));
