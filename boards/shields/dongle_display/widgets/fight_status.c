@@ -28,8 +28,9 @@
 #define WPM_SLOW_THRESHOLD 5
 #define WPM_MID_THRESHOLD 30
 #define WPM_FAST_THRESHOLD 70
-#define HUD_BAR_WIDTH 46
+#define HUD_BAR_WIDTH 35
 #define HUD_BAR_Y 2
+#define HUD_NUMBER_Y 2
 #define FIGHTER_MOVE_STEP 3U
 #define FIGHTER_REST_OFFSET 0U
 #define FIGHTER_ENGAGE_OFFSET 34U
@@ -141,8 +142,34 @@ static void draw_hline(uint8_t x, uint8_t y, uint8_t width) {
     }
 }
 
+static void draw_digit(uint8_t x, uint8_t y, uint8_t digit) {
+    static const uint8_t glyphs[10][5] = {
+        {0x07, 0x05, 0x05, 0x05, 0x07}, {0x02, 0x06, 0x02, 0x02, 0x07},
+        {0x07, 0x01, 0x07, 0x04, 0x07}, {0x07, 0x01, 0x07, 0x01, 0x07},
+        {0x05, 0x05, 0x07, 0x01, 0x01}, {0x07, 0x04, 0x07, 0x01, 0x07},
+        {0x07, 0x04, 0x07, 0x05, 0x07}, {0x07, 0x01, 0x01, 0x01, 0x01},
+        {0x07, 0x05, 0x07, 0x05, 0x07}, {0x07, 0x05, 0x07, 0x01, 0x07},
+    };
+
+    for (uint8_t row = 0; row < ARRAY_SIZE(glyphs[digit]); row++) {
+        for (uint8_t column = 0; column < 3U; column++) {
+            if (glyphs[digit][row] & BIT(2U - column)) {
+                set_pixel(x + column, y + row);
+            }
+        }
+    }
+}
+
+static void draw_battery_number(uint8_t side, uint8_t level) {
+    const uint8_t display_level = MIN(level, 99U);
+    const uint8_t x = side == 0U ? 1U : 120U;
+
+    draw_digit(x, HUD_NUMBER_Y, display_level / 10U);
+    draw_digit(x + 4U, HUD_NUMBER_Y, display_level % 10U);
+}
+
 static void draw_battery_bar(uint8_t side) {
-    const uint8_t x = side == 0 ? 1 : DISPLAY_WIDTH - 1 - HUD_BAR_WIDTH;
+    const uint8_t x = side == 0 ? 13U : 80U;
     const uint8_t level = battery_valid[side] ? battery_levels[side] : 0;
     const uint8_t fill = (HUD_BAR_WIDTH - 2U) * level / 100U;
 
@@ -158,6 +185,10 @@ static void draw_battery_bar(uint8_t side) {
     for (uint8_t row = 1; row < 4; row++) {
         uint8_t start = side == 0 ? x + HUD_BAR_WIDTH - 1U - fill : x + 1U;
         draw_hline(start, HUD_BAR_Y + row, fill);
+    }
+
+    if (battery_valid[side]) {
+        draw_battery_number(side, level);
     }
 }
 
