@@ -31,8 +31,8 @@
 #define HUD_BAR_WIDTH 46
 #define HUD_BAR_Y 2
 #define FIGHTER_MOVE_STEP 3U
-#define FIGHTER_REST_OFFSET 22U
-#define FIGHTER_ENGAGE_OFFSET 26U
+#define FIGHTER_REST_OFFSET 0U
+#define FIGHTER_ENGAGE_OFFSET 34U
 #define FIGHTER_ENGAGE_TIMEOUT_MS 1500U
 
 struct side_press_history {
@@ -215,6 +215,12 @@ static void render(struct zmk_widget_fight_status *widget) {
                    now - last_fight_press <= FIGHTER_ENGAGE_TIMEOUT_MS;
     for (uint8_t side = 0; side < 2; side++) {
         widget->players[side].wpm = side_wpm(side, now);
+        enum fight_action desired_action = action_for_wpm(widget->players[side].wpm);
+        engaged = engaged || desired_action != FIGHT_ACTION_IDLE ||
+                  widget->players[side].action != FIGHT_ACTION_IDLE;
+    }
+    for (uint8_t side = 0; side < 2; side++) {
+        enum fight_action desired_action = action_for_wpm(widget->players[side].wpm);
         uint8_t target_offset = engaged ? FIGHTER_ENGAGE_OFFSET : FIGHTER_REST_OFFSET;
         if (engaged) {
             widget->players[side].center_offset = target_offset;
@@ -229,7 +235,7 @@ static void render(struct zmk_widget_fight_status *widget) {
             }
         }
         advance_player(&widget->players[side], (enum fight_side)side,
-                       action_for_wpm(widget->players[side].wpm));
+                       desired_action);
     }
 
     memset(framebuffer + IMAGE_PALETTE_BYTES, 0, IMAGE_BYTES - IMAGE_PALETTE_BYTES);
