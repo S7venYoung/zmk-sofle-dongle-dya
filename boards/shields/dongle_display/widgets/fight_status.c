@@ -10,6 +10,8 @@
 #include <zephyr/sys/util.h>
 
 #include <zmk/event_manager.h>
+#include <zmk/endpoints.h>
+#include <zmk/events/battery_state_changed.h>
 #include <zmk/events/position_state_changed.h>
 
 #include "fight_assets.h"
@@ -26,6 +28,8 @@
 #define WPM_SLOW_THRESHOLD 5
 #define WPM_MID_THRESHOLD 30
 #define WPM_FAST_THRESHOLD 70
+#define HUD_BAR_WIDTH 46
+#define HUD_BAR_Y 2
 
 struct side_press_history {
     uint32_t timestamps[WPM_PRESS_HISTORY];
@@ -35,6 +39,8 @@ struct side_press_history {
 
 static struct side_press_history histories[2];
 static struct k_spinlock history_lock;
+static uint8_t battery_levels[2];
+static bool battery_valid[2];
 static LV_ATTRIBUTE_MEM_ALIGN uint8_t framebuffer[IMAGE_BYTES];
 static lv_image_dsc_t fight_image = {
     .header.cf = LV_COLOR_FORMAT_I1,
@@ -71,6 +77,19 @@ static int position_listener_cb(const zmk_event_t *eh) {
 ZMK_LISTENER(fighting_theme_positions, position_listener_cb);
 ZMK_SUBSCRIPTION(fighting_theme_positions, zmk_position_state_changed);
 
+static int battery_listener_cb(const zmk_event_t *eh) {
+    const struct zmk_peripheral_battery_state_changed *event =
+        as_zmk_peripheral_battery_state_changed(eh);
+    if (event != NULL && event->source < ARRAY_SIZE(battery_levels)) {
+        battery_levels[event->source] = MIN(event->state_of_charge, 100U);
+        battery_valid[event->source] = true;
+    }
+    return ZMK_EV_EVENT_BUBBLE;
+}
+
+ZMK_LISTENER(fighting_theme_batteries, battery_listener_cb);
+ZMK_SUBSCRIPTION(fighting_theme_batteries, zmk_peripheral_battery_state_changed);
+
 static uint8_t side_wpm(uint8_t side, uint32_t now) {
     uint8_t active = 0;
     k_spinlock_key_t key = k_spin_lock(&history_lock);
@@ -105,6 +124,51 @@ static enum fight_action action_for_wpm(uint8_t wpm) {
 static void set_pixel(uint8_t x, uint8_t y) {
     if (x < DISPLAY_WIDTH && y < DISPLAY_HEIGHT) {
         framebuffer[IMAGE_PALETTE_BYTES + y * IMAGE_ROW_BYTES + x / 8] |= BIT(7 - (x & 7));
+    }
+}
+
+static void draw_hline(uint8_t x, uint8_t y, uint8_t width) {
+    for (uint8_t i = 0; i < width; i++) {
+        set_pixel(x + i, y);
+    }
+}
+
+static void draw_battery_bar(uint8_t side) {
+    const uint8_t x = side == 0 ? 1 : DISPLAY_WIDTH - 1 - HUD_BAR_WIDTH;
+    const uint8_t level = battery_valid[side] ? battery_levels[side] : 0;
+    const uint8_t fill = (HUD_BAR_WIDTH - 2U) * level / 100U;
+
+    draw_hline(x, HUD_BAR_Y, HUD_BAR_WIDTH);
+    draw_hline(x, HUD_BAR_Y + 4U, HUD_BAR_WIDTH);
+    set_pixel(x, HUD_BAR_Y + 1U);
+    set_pixel(x, HUD_BAR_Y + 2U);
+    set_pixel(x, HUD_BAR_Y + 3U);
+    set_pixel(x + HUD_BAR_WIDTH - 1U, HUD_BAR_Y + 1U);
+    set_pixel(x + HUD_BAR_WIDTH - 1U, HUD_BAR_Y + 2U);
+    set_pixel(x + HUD_BAR_WIDTH - 1U, HUD_BAR_Y + 3U);
+
+    for (uint8_t row = 1; row < 4; row++) {
+        uint8_t start = side == 0 ? x + HUD_BAR_WIDTH - 1U - fill : x + 1U;
+        draw_hline(start, HUD_BAR_Y + row, fill);
+    }
+}
+
+static void draw_transport(void) {
+    static const uint8_t glyph_u[7] = {0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x0e};
+    static const uint8_t glyph_b[7] = {0x1e, 0x11, 0x11, 0x1e, 0x11, 0x11, 0x1e};
+    struct zmk_endpoint_instance endpoint = zmk_endpoint_get_selected();
+    enum zmk_transport transport = endpoint.transport;
+    if (transport == ZMK_TRANSPORT_NONE) {
+        transport = zmk_endpoint_get_preferred_transport();
+    }
+    const uint8_t *glyph = transport == ZMK_TRANSPORT_BLE ? glyph_b : glyph_u;
+
+    for (uint8_t y = 0; y < 7; y++) {
+        for (uint8_t x = 0; x < 5; x++) {
+            if (glyph[y] & BIT(4 - x)) {
+                set_pixel(61 + x, y + 1U);
+            }
+        }
     }
 }
 
@@ -154,6 +218,10 @@ static void render(struct zmk_widget_fight_status *widget) {
     memset(framebuffer + IMAGE_PALETTE_BYTES, 0, IMAGE_BYTES - IMAGE_PALETTE_BYTES);
     framebuffer[0] = framebuffer[1] = framebuffer[2] = framebuffer[3] = 0xff;
     framebuffer[4] = framebuffer[5] = framebuffer[6] = framebuffer[7] = 0;
+
+    draw_battery_bar(0);
+    draw_battery_bar(1);
+    draw_transport();
 
     const struct fight_player_state *left = &widget->players[0];
     const struct fight_player_state *right = &widget->players[1];
