@@ -22,7 +22,8 @@
 #define IMAGE_PALETTE_BYTES 8
 #define IMAGE_ROW_BYTES (DISPLAY_WIDTH / 8)
 #define IMAGE_BYTES (IMAGE_PALETTE_BYTES + IMAGE_ROW_BYTES * DISPLAY_HEIGHT)
-#define FIGHT_TICK_MS 100
+#define FIGHT_TICK_MS 33
+#define FIGHT_FRAME_TICKS 3U
 #define WPM_WINDOW_MS 5000U
 #define WPM_PRESS_HISTORY 64
 #define WPM_SLOW_THRESHOLD 5
@@ -45,6 +46,7 @@ struct side_press_history {
 static struct side_press_history histories[2];
 static struct k_spinlock history_lock;
 static uint32_t last_fight_press;
+static uint8_t fight_frame_tick;
 static uint8_t battery_levels[2];
 static bool battery_valid[2];
 static LV_ATTRIBUTE_MEM_ALIGN uint8_t framebuffer[IMAGE_BYTES];
@@ -242,6 +244,10 @@ static void advance_player(struct fight_player_state *player, enum fight_side si
 
 static void render(struct zmk_widget_fight_status *widget) {
     uint32_t now = k_uptime_get_32();
+    bool advance_frame = ++fight_frame_tick >= FIGHT_FRAME_TICKS;
+    if (advance_frame) {
+        fight_frame_tick = 0U;
+    }
     bool engaged = last_fight_press != 0U &&
                    now - last_fight_press <= FIGHTER_ENGAGE_TIMEOUT_MS;
     for (uint8_t side = 0; side < 2; side++) {
@@ -265,8 +271,10 @@ static void render(struct zmk_widget_fight_status *widget) {
                 widget->players[side].center_offset -= FIGHTER_MOVE_STEP;
             }
         }
-        advance_player(&widget->players[side], (enum fight_side)side,
-                       desired_action);
+        if (advance_frame) {
+            advance_player(&widget->players[side], (enum fight_side)side,
+                           desired_action);
+        }
     }
 
     memset(framebuffer + IMAGE_PALETTE_BYTES, 0, IMAGE_BYTES - IMAGE_PALETTE_BYTES);
