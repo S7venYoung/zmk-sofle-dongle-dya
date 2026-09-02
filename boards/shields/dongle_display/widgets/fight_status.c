@@ -32,6 +32,7 @@
 #define HUD_BAR_Y 2
 #define FIGHTER_MOVE_STEP 3U
 #define FIGHTER_MAX_OFFSET 14U
+#define FIGHTER_ENGAGE_TIMEOUT_MS 1500U
 
 struct side_press_history {
     uint32_t timestamps[WPM_PRESS_HISTORY];
@@ -41,6 +42,7 @@ struct side_press_history {
 
 static struct side_press_history histories[2];
 static struct k_spinlock history_lock;
+static uint32_t last_fight_press;
 static uint8_t battery_levels[2];
 static bool battery_valid[2];
 static LV_ATTRIBUTE_MEM_ALIGN uint8_t framebuffer[IMAGE_BYTES];
@@ -71,7 +73,10 @@ static void record_press(uint8_t side, uint32_t now) {
 static int position_listener_cb(const zmk_event_t *eh) {
     const struct zmk_position_state_changed *event = as_zmk_position_state_changed(eh);
     if (event != NULL && event->state && event->position < 64U) {
-        record_press(is_left_position(event->position) ? 0U : 1U, k_uptime_get_32());
+        uint32_t now = k_uptime_get_32();
+        record_press(is_left_position(event->position) ? 0U : 1U, now);
+        /* Either keyboard starts the exchange: both fighters close in immediately. */
+        last_fight_press = now;
     }
     return ZMK_EV_EVENT_BUBBLE;
 }
@@ -205,10 +210,16 @@ static void advance_player(struct fight_player_state *player, enum fight_side si
 
 static void render(struct zmk_widget_fight_status *widget) {
     uint32_t now = k_uptime_get_32();
+    bool engaged = last_fight_press != 0U &&
+                   now - last_fight_press <= FIGHTER_ENGAGE_TIMEOUT_MS;
     for (uint8_t side = 0; side < 2; side++) {
         widget->players[side].wpm = side_wpm(side, now);
-        uint8_t target_offset = MIN(widget->players[side].wpm / 5U, FIGHTER_MAX_OFFSET);
-        if (widget->players[side].center_offset < target_offset) {
+        uint8_t target_offset = engaged ? FIGHTER_MAX_OFFSET
+                                        : MIN(widget->players[side].wpm / 5U,
+                                              FIGHTER_MAX_OFFSET);
+        if (engaged) {
+            widget->players[side].center_offset = target_offset;
+        } else if (widget->players[side].center_offset < target_offset) {
             widget->players[side].center_offset =
                 MIN(widget->players[side].center_offset + FIGHTER_MOVE_STEP, target_offset);
         } else if (widget->players[side].center_offset > target_offset) {
