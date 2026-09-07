@@ -12,6 +12,21 @@
 -2026/6/22
 The keyboard now supports key remapping via DYA STUDIO. Chinese users should contact the seller to obtain the Chinese version of the DYA STUDIO installer. This PC software offers better key remapping functionality than ZMK Studio. Website: https://studio.dya.cormoran.works/ https://studio.dya.cormoran.works/
 
+## Dongle and monitor builds
+
+The `monitor` branch shares the existing Classic/YADS OLED theme settings but produces two
+different topologies because the ZMK split-central role is selected at build time:
+
+- `eyelash_sofle_central_dongle_oled.uf2`: normal USB/BLE HID dongle.
+- `monitor_keyboard_left_central.uf2`: left keyboard half becomes the central, connects to the
+  host, and broadcasts status using the Prospector v2.2.2 protocol on channel 1.
+- `monitor_display_receiver.uf2`: the original receiver hardware becomes a display-only BLE
+  observer and does not output keyboard HID reports.
+- `eyelash_sofle_peripheral_right_nice_view.uf2`: right half used by the monitor topology.
+
+The monitor displays both half batteries, layer, modifiers, WPM, and USB/BLE state. The existing
+DYA `display_theme` setting continues to select the OLED layout.
+
 > If your keyboard was updated before October 24, please update to the latest firmware.
 > 
 ---
@@ -23,4 +38,3 @@ For 3D printed model files or any issues and malfunctions with the keyboard, ple
 
 
 <img src="keymap-drawer/eyelash_sofle.svg" >
-

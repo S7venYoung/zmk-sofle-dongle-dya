@@ -9,3 +9,7 @@ endif()
 if(CONFIG_ZMK_CUSTOM_SETTINGS)
   target_sources(app PRIVATE src/display_settings.c)
 endif()
+
+if(CONFIG_ZMK_DONGLE_MONITOR)
+  target_sources(app PRIVATE src/monitor_status.c)
+endif()

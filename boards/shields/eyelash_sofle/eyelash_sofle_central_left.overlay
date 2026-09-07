@@ -1,0 +1,4 @@
+/* SPDX-License-Identifier: MIT */
+
+/* The monitor topology uses the physical left half as the keyboard central. */
+#include "eyelash_sofle_peripheral_left.overlay"

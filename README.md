@@ -53,6 +53,23 @@ GitHub Actions 构建完成后，在运行记录的 Artifacts 中下载固件压
 | `eyelash_sofle_peripheral_right...uf2` | 键盘右手 |
 | `settings_reset...uf2` | 清除 ZMK 配对与设置 |
 
+## Dongle 与 Monitor 模式
+
+`monitor` 分支共用现有 Classic/YADS OLED 主题代码，同时提供两种独立构建。由于
+ZMK 的 split central 角色由 Kconfig 在编译期决定，两种模式使用不同 UF2，而不是在
+运行中切换蓝牙角色。
+
+| 固件 | 用途 |
+|---|---|
+| `eyelash_sofle_central_dongle_oled.uf2` | 原 Dongle：左右手都连接接收器，接收器向电脑输出 HID |
+| `monitor_keyboard_left_central.uf2` | Monitor 拓扑的左手：连接右手、直连电脑并广播状态 |
+| `eyelash_sofle_peripheral_right_nice_view.uf2` | Monitor 拓扑的右手 peripheral |
+| `monitor_display_receiver.uf2` | 原接收器硬件：只监听状态广播并显示，不输出键盘 HID |
+
+Monitor 使用 Prospector v2.2.2 广播协议，固定频道为 `1`。屏幕接收左右电量、当前
+层、修饰键、WPM 及 USB/BLE 状态；DYA 中已有的 `display_theme` 仍可切换布局。切换
+拓扑前建议先刷 `settings_reset`，然后重新配对右手与左手 central。
+
 升级到 `4.1` 分支时，建议接收器、左手和右手使用同一次 Actions 构建生成的固件，不要混用不同分支或不同构建批次。
 
 如连接异常，可依次刷入 `settings_reset`，再重新刷接收器、左手和右手固件并重新配对。清除设置会删除已保存的蓝牙配对和运行时配置。
