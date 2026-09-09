@@ -14,8 +14,6 @@ manifest:
       url-base: https://github.com/tokyo2006
     - name: englmaxi
       url-base: https://github.com/englmaxi
-    - name: s7venyoung
-      url-base: https://github.com/S7venYoung
   projects:
     - name: mario-peripheral-animation
       remote: gpeye
@@ -56,11 +54,6 @@ manifest:
     - name: zmk-feature-device-info
       remote: cormoran
       revision: main
-    - name: zmk-feature-runtime-macro
-      remote: s7venyoung
-      repo-path: zmk-sofle-dongle-dya
-      revision: dya-runtime-macro-wake-fix
-      import: true
     - name: zmk-feature-runtime-combo
       remote: cormoran
       revision: main
