@@ -6,7 +6,7 @@ if(CONFIG_ZMK_KEY_STATS)
   target_sources(app PRIVATE src/key_stats.c)
 endif()
 
-if(CONFIG_ZMK_CUSTOM_SETTINGS)
+if(CONFIG_ZMK_CUSTOM_SETTINGS AND CONFIG_ZMK_DONGLE_DISPLAY)
   target_sources(app PRIVATE src/display_settings.c)
 endif()
 
