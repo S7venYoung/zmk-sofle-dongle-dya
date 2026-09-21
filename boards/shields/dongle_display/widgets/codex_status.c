@@ -170,9 +170,7 @@ int zmk_widget_codex_status_init(struct zmk_widget_codex_status *widget, lv_obj_
     lv_obj_set_style_border_width(widget->obj, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_all(widget->obj, 0, LV_PART_MAIN);
 
-    /* Keep the header inside 128 pixels: the full double-slash version
-     * overlaps the USB label on the physical SH1106 panel. */
-    label(widget->obj, "CODEX/SOFLE", LV_ALIGN_TOP_LEFT, 3, 2);
+    label(widget->obj, "CODEX", LV_ALIGN_TOP_LEFT, 3, 2);
     label(widget->obj, "USB", LV_ALIGN_TOP_RIGHT, -8, 2);
     lv_obj_t *usb_dot = lv_obj_create(widget->obj);
     lv_obj_set_size(usb_dot, 3, 3);
@@ -194,6 +192,7 @@ int zmk_widget_codex_status_init(struct zmk_widget_codex_status *widget, lv_obj_
     lv_obj_set_pos(widget->primary_fill, 1, 1);
     lv_obj_set_size(widget->primary_fill, 1, 2);
     lv_obj_set_style_bg_color(widget->primary_fill, CODEX_OLED_FOREGROUND, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(widget->primary_fill, LV_OPA_COVER, LV_PART_MAIN);
     lv_obj_set_style_border_width(widget->primary_fill, 0, LV_PART_MAIN);
 
     lv_obj_t *secondary = panel(widget->obj, 65, 12, 61, 26);
@@ -209,6 +208,7 @@ int zmk_widget_codex_status_init(struct zmk_widget_codex_status *widget, lv_obj_
     lv_obj_set_pos(widget->secondary_fill, 1, 1);
     lv_obj_set_size(widget->secondary_fill, 1, 2);
     lv_obj_set_style_bg_color(widget->secondary_fill, CODEX_OLED_FOREGROUND, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(widget->secondary_fill, LV_OPA_COVER, LV_PART_MAIN);
     lv_obj_set_style_border_width(widget->secondary_fill, 0, LV_PART_MAIN);
 
     lv_obj_t *footer = panel(widget->obj, 2, 41, 124, 21);
