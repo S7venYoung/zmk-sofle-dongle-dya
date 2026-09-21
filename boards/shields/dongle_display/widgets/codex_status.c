@@ -107,7 +107,9 @@ int zmk_widget_codex_status_init(struct zmk_widget_codex_status *widget, lv_obj_
     lv_obj_set_style_border_width(widget->obj, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_all(widget->obj, 0, LV_PART_MAIN);
 
-    label(widget->obj, "CODEX//SOFLE", LV_ALIGN_TOP_LEFT, 3, 2);
+    /* Keep the header inside 128 pixels: the full double-slash version
+     * overlaps the USB label on the physical SH1106 panel. */
+    label(widget->obj, "CODEX/SOFLE", LV_ALIGN_TOP_LEFT, 3, 2);
     label(widget->obj, "USB", LV_ALIGN_TOP_RIGHT, -8, 2);
     lv_obj_t *usb_dot = lv_obj_create(widget->obj);
     lv_obj_set_size(usb_dot, 3, 3);
