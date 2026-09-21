@@ -13,4 +13,6 @@ message Request {
   UpdateRequest update = 1;
 }
 
-message Response {}
+message Response {
+  bool accepted = 1;
+}

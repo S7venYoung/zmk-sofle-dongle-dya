@@ -40,6 +40,7 @@ static bool codex_metrics_handle_request(const zmk_custom_CallRequest *raw_reque
 
     zmk_codex_metrics_update(request.update.five_hour_used, request.update.total_tokens,
                              request.update.updated_at);
-    *response = s7venyoung_codex_metrics_Response_init_zero;
+    *response = (s7venyoung_codex_metrics_Response)s7venyoung_codex_metrics_Response_init_zero;
+    response->accepted = true;
     return true;
 }
