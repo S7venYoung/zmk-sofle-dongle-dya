@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package s7venyoung.codex_metrics;
+
+/* Mirrors the first CodexMetrics frame emitted by ProspectorCodexMacOS. */
+message UpdateRequest {
+  uint32 five_hour_used = 1;
+  uint32 total_tokens = 2;
+  uint32 updated_at = 3;
+}
+
+message Request {
+  UpdateRequest update = 1;
+}
+
+message Response {}

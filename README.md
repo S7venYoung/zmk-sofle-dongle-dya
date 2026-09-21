@@ -99,7 +99,7 @@ GitHub Actions 构建完成后，在运行记录的 Artifacts 中下载固件压
 
 | 设置 | 作用 | 范围 |
 | --- | --- | --- |
-| `display_theme` | OLED 主题 | `0`=Classic，`1`=YADS |
+| `display_theme` | OLED 主题 | `0`=Classic，`1`=YADS，`2`=Codex |
 | `key_stats_enabled` | 是否显示按键统计 | 开/关 |
 | `key_stats_x` | 统计模块横坐标 | 0–78 |
 | `key_stats_y` | 统计模块纵坐标 | 0–46 |
@@ -125,7 +125,11 @@ GitHub Actions 构建完成后，在运行记录的 Artifacts 中下载固件压
 
 ### 双主题实验分支
 
-`4.1-display-themes` 在保留当前 Classic 猫咪主题的基础上增加 YADS 信息主题。通过 DYA Studio 将 `display_theme` 写为 `0` 或 `1` 后立即切换，点击页面顶部的 `Save` 后持久保存。
+`4.1-display-themes` 在保留当前 Classic 猫咪主题的基础上增加 YADS 信息主题。通过 DYA Studio 将 `display_theme` 写为 `0`、`1` 或 `2` 后立即切换，点击页面顶部的 `Save` 后持久保存。
+
+### Codex 主题
+
+`display_theme=2` 启用独立的 Codex 仪表盘：5 小时与周额度剩余比例、当日 token 总数、重置倒计时和 USB 连接状态。没有收到 Mac 配套程序的数据时，主题显示 `WAITING FOR MAC`，不会把未知额度误显示为 100%。
 
 YADS 主题底部的左右副手电量始终显示：左右各使用相同字号显示数字，下方横线长度表示剩余电量；尚未收到电量或断开连接时显示 `X`。
 
