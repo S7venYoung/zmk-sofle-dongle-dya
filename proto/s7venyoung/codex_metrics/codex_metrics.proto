@@ -7,6 +7,8 @@ message UpdateRequest {
   uint32 five_hour_used = 1;
   uint32 total_tokens = 2;
   uint32 updated_at = 3;
+  uint32 reset_in_minutes = 4;
+  uint32 week_used = 5;
 }
 
 message Request {

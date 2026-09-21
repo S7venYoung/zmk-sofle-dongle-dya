@@ -18,9 +18,8 @@ struct codex_metrics {
 
 static struct codex_metrics metrics;
 
-static void set_bar(lv_obj_t *fill, uint8_t used, uint8_t width) {
-    uint8_t remaining = 100 - MIN(used, 100);
-    lv_obj_set_width(fill, MAX(1, (width * remaining) / 100));
+static void set_bar(lv_obj_t *fill, uint8_t percent, uint8_t width) {
+    lv_obj_set_width(fill, MAX(1, (width * MIN(percent, 100)) / 100));
 }
 
 static void refresh(struct zmk_widget_codex_status *widget) {
@@ -45,12 +44,17 @@ static void refresh(struct zmk_widget_codex_status *widget) {
     }
     snprintf(text, sizeof(text), "TODAY %luM", (unsigned long)(metrics.total_tokens / 1000000));
     lv_label_set_text(widget->tokens, text);
-    snprintf(text, sizeof(text), "RESET %02lu:%02lu", (unsigned long)(metrics.reset_in_minutes / 60),
-             (unsigned long)(metrics.reset_in_minutes % 60));
+    if (metrics.reset_in_minutes == 0) {
+        snprintf(text, sizeof(text), "RESET --:--");
+    } else {
+        snprintf(text, sizeof(text), "RESET %02lu:%02lu",
+                 (unsigned long)(metrics.reset_in_minutes / 60),
+                 (unsigned long)(metrics.reset_in_minutes % 60));
+    }
     lv_label_set_text(widget->reset, text);
-    set_bar(widget->primary_fill, metrics.five_hour_used, 53);
+    set_bar(widget->primary_fill, 100 - metrics.five_hour_used, 53);
     if (metrics.week_used >= 0) {
-        set_bar(widget->secondary_fill, metrics.week_used, 53);
+        set_bar(widget->secondary_fill, 100 - metrics.week_used, 53);
     } else {
         lv_obj_set_width(widget->secondary_fill, 1);
     }
@@ -70,11 +74,11 @@ void zmk_widget_codex_status_set_metrics(uint8_t five_hour_used, int16_t week_us
     SYS_SLIST_FOR_EACH_CONTAINER(&widgets, widget, node) { refresh(widget); }
 }
 
-void zmk_codex_metrics_update(uint8_t five_hour_used, uint32_t total_tokens, uint32_t updated_at) {
+void zmk_codex_metrics_update(uint8_t five_hour_used, int16_t week_used, uint32_t total_tokens,
+                              uint32_t reset_in_minutes, uint32_t updated_at) {
     ARG_UNUSED(updated_at);
-    /* The first companion protocol only sends five-hour usage and token count.
-     * Keep weekly/reset unavailable until those fields are added to the host. */
-    zmk_widget_codex_status_set_metrics(five_hour_used, -1, total_tokens, 0);
+    zmk_widget_codex_status_set_metrics(five_hour_used, week_used, total_tokens,
+                                        reset_in_minutes);
 }
 
 static lv_obj_t *label(lv_obj_t *parent, const char *text, lv_align_t align, int x, int y) {
@@ -148,9 +152,9 @@ int zmk_widget_codex_status_init(struct zmk_widget_codex_status *widget, lv_obj_
     lv_obj_set_style_bg_color(widget->secondary_fill, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_style_border_width(widget->secondary_fill, 0, LV_PART_MAIN);
 
-    lv_obj_t *footer = panel(widget->obj, 2, 42, 124, 19);
+    lv_obj_t *footer = panel(widget->obj, 2, 41, 124, 21);
     widget->tokens = label(footer, "TODAY  --", LV_ALIGN_TOP_LEFT, 3, 2);
-    widget->reset = label(footer, "WAITING FOR MAC", LV_ALIGN_BOTTOM_LEFT, 3, -2);
+    widget->reset = label(footer, "WAITING FOR MAC", LV_ALIGN_TOP_LEFT, 3, 11);
 
     sys_slist_append(&widgets, &widget->node);
     refresh(widget);

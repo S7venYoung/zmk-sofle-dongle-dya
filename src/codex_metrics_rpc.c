@@ -38,7 +38,9 @@ static bool codex_metrics_handle_request(const zmk_custom_CallRequest *raw_reque
         return false;
     }
 
-    zmk_codex_metrics_update(request.update.five_hour_used, request.update.total_tokens,
+    zmk_codex_metrics_update(request.update.five_hour_used,
+                             request.update.week_used <= 100 ? request.update.week_used : -1,
+                             request.update.total_tokens, request.update.reset_in_minutes,
                              request.update.updated_at);
     *response = (s7venyoung_codex_metrics_Response)s7venyoung_codex_metrics_Response_init_zero;
     response->accepted = true;
