@@ -1,10 +1,17 @@
 #include "codex_status.h"
 
+#include <errno.h>
 #include <stdio.h>
 
+#include <zephyr/init.h>
+#include <zephyr/kernel.h>
 #include <zephyr/sys/util.h>
 
 #include <zmk/codex_metrics.h>
+
+#if IS_ENABLED(CONFIG_SETTINGS)
+#include <zephyr/settings/settings.h>
+#endif
 
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 
@@ -17,6 +24,48 @@ struct codex_metrics {
 };
 
 static struct codex_metrics metrics;
+
+#if IS_ENABLED(CONFIG_SETTINGS)
+#define CODEX_METRICS_SETTINGS_KEY "codex_metrics/metrics"
+
+static bool metrics_settings_ready;
+static struct k_work_delayable metrics_save_work;
+
+static int codex_metrics_handle_set(const char *name, size_t len, settings_read_cb read_cb,
+                                    void *cb_arg) {
+    const char *next;
+
+    if (!settings_name_steq(name, "metrics", &next) || next) {
+        return 0;
+    }
+    if (len != sizeof(metrics)) {
+        return -EINVAL;
+    }
+    int err = read_cb(cb_arg, &metrics, sizeof(metrics));
+    if (err <= 0) {
+        return err;
+    }
+    return 0;
+}
+
+static int codex_metrics_handle_commit(void) {
+    metrics_settings_ready = true;
+    return 0;
+}
+
+static struct settings_handler codex_metrics_settings_handler = {
+    .name = "codex_metrics",
+    .h_set = codex_metrics_handle_set,
+    .h_commit = codex_metrics_handle_commit,
+};
+
+static void codex_metrics_save_work_cb(struct k_work *work) {
+    ARG_UNUSED(work);
+    if (metrics_settings_ready) {
+        settings_save_one(CODEX_METRICS_SETTINGS_KEY, &metrics, sizeof(metrics));
+    }
+}
+#endif
 
 static void set_bar(lv_obj_t *fill, uint8_t percent, uint8_t width) {
     lv_obj_set_width(fill, MAX(1, (width * MIN(percent, 100)) / 100));
@@ -72,6 +121,11 @@ void zmk_widget_codex_status_set_metrics(uint8_t five_hour_used, int16_t week_us
 
     struct zmk_widget_codex_status *widget;
     SYS_SLIST_FOR_EACH_CONTAINER(&widgets, widget, node) { refresh(widget); }
+
+#if IS_ENABLED(CONFIG_SETTINGS)
+    /* Coalesce repeated host updates so flash is written once per burst. */
+    k_work_reschedule(&metrics_save_work, K_SECONDS(5));
+#endif
 }
 
 void zmk_codex_metrics_update(uint8_t five_hour_used, int16_t week_used, uint32_t total_tokens,
@@ -160,6 +214,19 @@ int zmk_widget_codex_status_init(struct zmk_widget_codex_status *widget, lv_obj_
     refresh(widget);
     return 0;
 }
+
+static int codex_metrics_init(void) {
+#if IS_ENABLED(CONFIG_SETTINGS)
+    k_work_init_delayable(&metrics_save_work, codex_metrics_save_work_cb);
+    int err = settings_register(&codex_metrics_settings_handler);
+    if (err == 0) {
+        metrics_settings_ready = true;
+    }
+#endif
+    return 0;
+}
+
+SYS_INIT(codex_metrics_init, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY);
 
 lv_obj_t *zmk_widget_codex_status_obj(struct zmk_widget_codex_status *widget) {
     return widget->obj;
