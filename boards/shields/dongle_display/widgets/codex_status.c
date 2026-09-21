@@ -15,6 +15,11 @@
 
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 
+/* This SH1106 panel's monochrome mapping is inverted by the display stack:
+ * LVGL white is physically dark and LVGL black is physically lit. */
+#define CODEX_OLED_BACKGROUND lv_color_white()
+#define CODEX_OLED_FOREGROUND lv_color_black()
+
 struct codex_metrics {
     uint8_t five_hour_used;
     int16_t week_used;
@@ -139,7 +144,7 @@ static lv_obj_t *label(lv_obj_t *parent, const char *text, lv_align_t align, int
     lv_obj_t *result = lv_label_create(parent);
     lv_label_set_text(result, text);
     lv_obj_set_style_text_font(result, &lv_font_unscii_8, LV_PART_MAIN);
-    lv_obj_set_style_text_color(result, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_text_color(result, CODEX_OLED_FOREGROUND, LV_PART_MAIN);
     lv_obj_set_style_text_letter_space(result, 0, LV_PART_MAIN);
     lv_obj_align(result, align, x, y);
     return result;
@@ -150,7 +155,7 @@ static lv_obj_t *panel(lv_obj_t *parent, int x, int y, int width, int height) {
     lv_obj_set_pos(result, x, y);
     lv_obj_set_size(result, width, height);
     lv_obj_set_style_bg_opa(result, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_border_color(result, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_border_color(result, CODEX_OLED_FOREGROUND, LV_PART_MAIN);
     lv_obj_set_style_border_width(result, 1, LV_PART_MAIN);
     lv_obj_set_style_radius(result, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_all(result, 0, LV_PART_MAIN);
@@ -160,7 +165,7 @@ static lv_obj_t *panel(lv_obj_t *parent, int x, int y, int width, int height) {
 int zmk_widget_codex_status_init(struct zmk_widget_codex_status *widget, lv_obj_t *parent) {
     widget->obj = lv_obj_create(parent);
     lv_obj_set_size(widget->obj, 128, 64);
-    lv_obj_set_style_bg_color(widget->obj, lv_color_black(), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(widget->obj, CODEX_OLED_BACKGROUND, LV_PART_MAIN);
     lv_obj_set_style_bg_opa(widget->obj, LV_OPA_COVER, LV_PART_MAIN);
     lv_obj_set_style_border_width(widget->obj, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_all(widget->obj, 0, LV_PART_MAIN);
@@ -171,7 +176,7 @@ int zmk_widget_codex_status_init(struct zmk_widget_codex_status *widget, lv_obj_
     label(widget->obj, "USB", LV_ALIGN_TOP_RIGHT, -8, 2);
     lv_obj_t *usb_dot = lv_obj_create(widget->obj);
     lv_obj_set_size(usb_dot, 3, 3);
-    lv_obj_set_style_bg_color(usb_dot, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(usb_dot, CODEX_OLED_FOREGROUND, LV_PART_MAIN);
     lv_obj_set_style_border_width(usb_dot, 0, LV_PART_MAIN);
     lv_obj_set_style_radius(usb_dot, LV_RADIUS_CIRCLE, LV_PART_MAIN);
     lv_obj_align(usb_dot, LV_ALIGN_TOP_RIGHT, -3, 4);
@@ -182,13 +187,13 @@ int zmk_widget_codex_status_init(struct zmk_widget_codex_status *widget, lv_obj_
     lv_obj_set_pos(primary_track, 3, 17);
     lv_obj_set_size(primary_track, 53, 4);
     lv_obj_set_style_bg_opa(primary_track, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_border_color(primary_track, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_border_color(primary_track, CODEX_OLED_FOREGROUND, LV_PART_MAIN);
     lv_obj_set_style_border_width(primary_track, 1, LV_PART_MAIN);
     lv_obj_set_style_radius(primary_track, 0, LV_PART_MAIN);
     widget->primary_fill = lv_obj_create(primary_track);
     lv_obj_set_pos(widget->primary_fill, 1, 1);
     lv_obj_set_size(widget->primary_fill, 1, 2);
-    lv_obj_set_style_bg_color(widget->primary_fill, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(widget->primary_fill, CODEX_OLED_FOREGROUND, LV_PART_MAIN);
     lv_obj_set_style_border_width(widget->primary_fill, 0, LV_PART_MAIN);
 
     lv_obj_t *secondary = panel(widget->obj, 65, 12, 61, 26);
@@ -197,13 +202,13 @@ int zmk_widget_codex_status_init(struct zmk_widget_codex_status *widget, lv_obj_
     lv_obj_set_pos(secondary_track, 3, 17);
     lv_obj_set_size(secondary_track, 53, 4);
     lv_obj_set_style_bg_opa(secondary_track, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_border_color(secondary_track, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_border_color(secondary_track, CODEX_OLED_FOREGROUND, LV_PART_MAIN);
     lv_obj_set_style_border_width(secondary_track, 1, LV_PART_MAIN);
     lv_obj_set_style_radius(secondary_track, 0, LV_PART_MAIN);
     widget->secondary_fill = lv_obj_create(secondary_track);
     lv_obj_set_pos(widget->secondary_fill, 1, 1);
     lv_obj_set_size(widget->secondary_fill, 1, 2);
-    lv_obj_set_style_bg_color(widget->secondary_fill, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(widget->secondary_fill, CODEX_OLED_FOREGROUND, LV_PART_MAIN);
     lv_obj_set_style_border_width(widget->secondary_fill, 0, LV_PART_MAIN);
 
     lv_obj_t *footer = panel(widget->obj, 2, 41, 124, 21);
