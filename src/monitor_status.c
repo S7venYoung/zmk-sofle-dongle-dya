@@ -86,6 +86,8 @@ static void scan_recv(const struct bt_le_scan_recv_info *info, struct net_buf_si
         .rssi = info->rssi,
         .last_seen_ms = 0,
     };
+    memcpy(next.layer_name, data->layer_name, sizeof(data->layer_name));
+    next.layer_name[sizeof(next.layer_name) - 1] = '\0';
 
     k_spinlock_key_t key = k_spin_lock(&current_lock);
     struct zmk_monitor_status previous = current;

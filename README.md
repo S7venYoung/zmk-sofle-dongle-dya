@@ -69,6 +69,8 @@ ZMK 的 split central 角色由 Kconfig 在编译期决定，两种模式使用�
 Monitor 使用 Prospector v2.2.2 广播协议，固定频道为 `1`。屏幕接收左右电量、当前
 层、修饰键、WPM 及 USB/BLE 状态。Monitor 接收器是无按键的纯显示设备，不启用
 ZMK Studio，因此无法通过 DYA Studio 编辑接收器设置；原 Dongle 固件仍保留原有设置功能。
+扫描页面使用 YADS 风格布局，显示 WPM、连接状态、当前层名、按下中的修饰键和左右手电量。
+Prospector v2.2.2 广播包不包含最近键入字母，因此扫描页面以当前层名作为中央信息。
 切换拓扑前建议先刷 `settings_reset`，然后重新配对右手与左手 central。
 
 升级到 `4.1` 分支时，建议接收器、左手和右手使用同一次 Actions 构建生成的固件，不要混用不同分支或不同构建批次。
