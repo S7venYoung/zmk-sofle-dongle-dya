@@ -67,8 +67,9 @@ ZMK 的 split central 角色由 Kconfig 在编译期决定，两种模式使用�
 | `monitor_display_receiver.uf2` | 原接收器硬件：只监听状态广播并显示，不输出键盘 HID |
 
 Monitor 使用 Prospector v2.2.2 广播协议，固定频道为 `1`。屏幕接收左右电量、当前
-层、修饰键、WPM 及 USB/BLE 状态；DYA 中已有的 `display_theme` 仍可切换布局。切换
-拓扑前建议先刷 `settings_reset`，然后重新配对右手与左手 central。
+层、修饰键、WPM 及 USB/BLE 状态。Monitor 接收器是无按键的纯显示设备，不启用
+ZMK Studio，因此无法通过 DYA Studio 编辑接收器设置；原 Dongle 固件仍保留原有设置功能。
+切换拓扑前建议先刷 `settings_reset`，然后重新配对右手与左手 central。
 
 升级到 `4.1` 分支时，建议接收器、左手和右手使用同一次 Actions 构建生成的固件，不要混用不同分支或不同构建批次。
 

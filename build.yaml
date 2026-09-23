@@ -18,8 +18,6 @@ include:
     artifact-name: monitor_keyboard_left_central
   - board: nice_nano//zmk
     shield: monitor_adapter dongle_display
-    snippet: studio-rpc-usb-uart
-    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_LOCKING=n
     artifact-name: monitor_display_receiver
   - board: nice_nano//zmk
     shield: settings_reset
