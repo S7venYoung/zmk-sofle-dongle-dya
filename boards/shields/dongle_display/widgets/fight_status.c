@@ -90,10 +90,8 @@ static int battery_listener_cb(const zmk_event_t *eh) {
     const struct zmk_peripheral_battery_state_changed *event =
         as_zmk_peripheral_battery_state_changed(eh);
     if (event != NULL && event->source < ARRAY_SIZE(battery_levels)) {
-        k_spinlock_key_t key = k_spin_lock(&history_lock);
         battery_levels[event->source] = MIN(event->state_of_charge, 100U);
         battery_valid[event->source] = true;
-        k_spin_unlock(&history_lock, key);
     }
     return ZMK_EV_EVENT_BUBBLE;
 }
@@ -130,17 +128,6 @@ static enum fight_action action_for_wpm(uint8_t wpm) {
         return FIGHT_ACTION_SLOW;
     }
     return FIGHT_ACTION_IDLE;
-}
-
-void fight_telemetry_read(uint8_t wpm[2], uint8_t battery[2], uint8_t *valid) {
-    uint32_t now = k_uptime_get_32();
-    wpm[0] = side_wpm(0, now);
-    wpm[1] = side_wpm(1, now);
-    k_spinlock_key_t key = k_spin_lock(&history_lock);
-    battery[0] = battery_levels[0];
-    battery[1] = battery_levels[1];
-    *valid = 1U | (battery_valid[0] ? 2U : 0U) | (battery_valid[1] ? 4U : 0U);
-    k_spin_unlock(&history_lock, key);
 }
 
 static void set_pixel(uint8_t x, uint8_t y) {

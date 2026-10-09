@@ -8,6 +8,5 @@ if(CONFIG_ZMK_DISPLAY AND CONFIG_ZMK_DISPLAY_STATUS_SCREEN_CUSTOM AND ((NOT CONF
     zephyr_library_include_directories(${CMAKE_CURRENT_LIST_DIR}/../../../include)
     zephyr_library_sources(custom_status_screen.c)
     zephyr_library_sources(widgets/fight_status.c)
-    zephyr_library_sources(widgets/fight_telemetry.c)
     zephyr_library_sources(widgets/fight_assets.c)
 endif()
